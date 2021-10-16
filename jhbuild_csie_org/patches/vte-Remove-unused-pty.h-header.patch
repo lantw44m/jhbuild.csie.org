@@ -1,0 +1,37 @@
+From 8224226d535b6d4e79ce3112d96e8fc5d6d2d4f1 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Thu, 3 Apr 2014 20:31:52 +0800
+Subject: [PATCH] Remove unused pty.h header
+
+---
+ src/pty.c | 1 -
+ src/vte.c | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/src/pty.c b/src/pty.c
+index 9294210..98a3f70 100644
+--- a/src/pty.c
++++ b/src/pty.c
+@@ -64,7 +64,6 @@
+ #include <glib.h>
+ #include <gio/gio.h>
+ #include "debug.h"
+-#include "pty.h"
+ 
+ #ifdef MSG_NOSIGNAL
+ #define PTY_RECVMSG_FLAGS MSG_NOSIGNAL
+diff --git a/src/vte.c b/src/vte.c
+index 775b675..f2834e7 100644
+--- a/src/vte.c
++++ b/src/vte.c
+@@ -51,7 +51,6 @@
+ #include "keymap.h"
+ #include "marshal.h"
+ #include "matcher.h"
+-#include "pty.h"
+ #include "vteaccess.h"
+ #include "vteint.h"
+ #include "vtepty.h"
+-- 
+1.9.0
+

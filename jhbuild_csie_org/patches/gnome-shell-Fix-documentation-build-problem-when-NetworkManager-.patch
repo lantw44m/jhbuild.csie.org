@@ -1,0 +1,62 @@
+From 129b476ecbd61551a9d94d3c86e52a055c5d63d5 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Sun, 16 Mar 2014 23:58:44 +0800
+Subject: [PATCH] Fix documentation build problem when NetworkManager is
+ disabled
+
+---
+ configure.ac                            | 3 +++
+ docs/reference/shell/Makefile.am        | 4 ++++
+ docs/reference/shell/shell-docs.sgml.in | 2 +-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 0adb0df..28e0156 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -203,11 +203,14 @@ fi
+ if test "x$have_networkmanager" = "xyes"; then
+    AC_DEFINE(HAVE_NETWORKMANAGER, [1], [Define if we have NetworkManager])
+    AC_SUBST([HAVE_NETWORKMANAGER], [1])
++   AC_SUBST([SHELL_NETWORK_AGENT_DOC],
++      ["<xi:include href=\"xml/shell-network-agent.xml\"/>"])
+ else
+    if test "x$enable_networkmanager" = "xyes"; then
+       AC_MSG_ERROR([Couldn't find NetworkManager.])
+    fi
+    AC_SUBST([HAVE_NETWORKMANAGER], [0])
++   AC_SUBST([SHELL_NETWORK_AGENT_DOC], [])
+ fi
+ 
+ AM_CONDITIONAL(HAVE_NETWORKMANAGER, test "$have_networkmanager" = "yes")
+diff --git a/docs/reference/shell/Makefile.am b/docs/reference/shell/Makefile.am
+index c4b064f..aa5d2d3 100644
+--- a/docs/reference/shell/Makefile.am
++++ b/docs/reference/shell/Makefile.am
+@@ -72,6 +72,10 @@ if !BUILD_RECORDER
+ IGNORE_HFILES += shell-recorder.h
+ endif
+ 
++if !HAVE_NETWORKMANAGER
++IGNORE_HFILES += shell-network-agent.h
++endif
++
+ # Images to copy into HTML directory.
+ # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
+ HTML_IMAGES=
+diff --git a/docs/reference/shell/shell-docs.sgml.in b/docs/reference/shell/shell-docs.sgml.in
+index d61f067..d490257 100644
+--- a/docs/reference/shell/shell-docs.sgml.in
++++ b/docs/reference/shell/shell-docs.sgml.in
+@@ -50,7 +50,7 @@
+     <xi:include href="xml/shell-wm.xml"/>
+     <xi:include href="xml/shell-util.xml"/>
+     <xi:include href="xml/shell-mount-operation.xml"/>
+-    <xi:include href="xml/shell-network-agent.xml"/>
++    @SHELL_NETWORK_AGENT_DOC@
+     <xi:include href="xml/shell-polkit-authentication-agent.xml"/>
+     <xi:include href="xml/shell-tp-client.xml"/>
+   </chapter>
+-- 
+1.9.0
+

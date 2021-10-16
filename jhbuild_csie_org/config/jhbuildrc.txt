@@ -1,0 +1,533 @@
+# -*- mode: python -*-
+# -*- coding: utf-8 -*-
+# -*- vim: set et ts=4 sts=4 sw=4 ft=python: -*-
+
+# Simple configuration
+
+def config():
+    return {
+        'base'            : '/home/lantw44/gnome',
+        'purpose'         : 'ci',
+        'cputype'         : '',
+        'binutils'        : '',
+        'makeargs'        : '-j4',
+        'enable_mirror'   : False,
+        'enable_optdebug' : False,
+        'compress_debug'  : False,
+        'install_games'   : True,
+        'install_world'   : True,
+        'install_unusual' : True,
+        'install_wayland' : False,
+    }
+
+
+# Repositories
+
+repos['git.gnome.org']              = 'https://git.gnome.org/browse/'
+repos['gitlab.gnome.org']           = 'https://gitlab.gnome.org/'
+
+repos['git.freedesktop.org']        = 'https://anongit.freedesktop.org/git/'
+repos['fprint.freedesktop.org']     = 'https://anongit.freedesktop.org/git/libfprint/'
+repos['gstreamer.freedesktop.org']  = 'https://anongit.freedesktop.org/git/gstreamer/'
+repos['pulseaudio.freedesktop.org'] = 'https://anongit.freedesktop.org/git/pulseaudio/'
+repos['telepathy.freedesktop.org']  = 'https://anongit.freedesktop.org/git/telepathy/'
+repos['wayland']                    = 'https://anongit.freedesktop.org/git/wayland/'
+repos['wayland.freedesktop.org']    = 'https://anongit.freedesktop.org/git/wayland/'
+repos['xorg.freedesktop.org']       = 'https://anongit.freedesktop.org/git/xorg/'
+
+repos['fedorahosted.org']           = 'https://git.fedorahosted.org/git/'
+repos['github.com']                 = 'https://github.com/'
+repos['gitlab.com']                 = 'https://gitlab.com/'
+
+repos['git.ardour.org']             = 'https://git.ardour.org/'
+repos['git.kernel.org']             = 'https://git.kernel.org/pub/scm/'
+repos['git.xfce.org']               = 'https://git.xfce.org/'
+
+
+# Insecure repositories
+
+repos['git.sv.gnu.org']             = 'http://git.savannah.gnu.org/r/'
+repos['git.savannah.nongnu.org']    = 'http://git.savannah.gnu.org/r/'
+
+
+# Functions
+
+from logging import info
+from logging import error
+
+def config_generate(config):
+
+    # Environment variable helpers
+    class GlobalEnv:
+        def __init__(self):
+            self.env = dict()
+        def add(self, key, value):
+            if value == '':
+                return
+            if key not in self.env:
+                self.env[key] = [ value ]
+            else:
+                self.env[key].append(value)
+        def addm(self, key, *args):
+            for arg in args:
+                self.add(key, arg)
+        def cmd(self, key, value):
+            if key not in self.env:
+                self.env[key] = [ value ]
+            else:
+                self.env[key][0] = value
+        def apply(self):
+            for key in self.env:
+                os.environ[key] = ' '.join(self.env[key])
+
+    class ModuleEnv:
+        def __init__(self):
+            self.env = dict()
+        def add(self, module, key, value):
+            if value == '':
+                return
+            if module not in self.env:
+                self.env[module] = dict()
+            if key not in self.env[module]:
+                self.env[module][key] = [ value ]
+            else:
+                self.env[module][key].append(value)
+        def addm(self, module, key, *args):
+            for arg in args:
+                self.add(module, key, arg)
+        def apply(self):
+            global module_extra_env
+            for module in self.env:
+                module_env = dict()
+                for key in self.env[module]:
+                    module_env[key] = ' '.join(self.env[module][key])
+                module_extra_env[module] = module_env
+
+    env           = GlobalEnv()
+    mod_env       = ModuleEnv()
+
+    # Modules
+    global moduleset, modules, skip
+    moduleset     = [ 'gnome-world', 'gnome-apps-latest' ]
+    modules       = [ 'jhbuild', 'meta-gnome-core', 'meta-gnome-apps-tested' ]
+    skip          = [ 'gettext', 'libvirt', 'pygtk', 'gstreamer-0.10' ]
+
+    # Paths
+    global prefix, tarballdir, checkoutroot, buildroot, dvcs_mirror_dir
+    prefix        = os.path.join(config['base'], 'devinstall')
+    tarballdir    = os.path.join(config['base'], 'tarball')
+    checkoutroot  = os.path.join(config['base'], 'source')
+    buildroot     = os.path.join(config['base'], 'build')
+
+    # Options
+    global nonotify, use_local_modulesets, disable_Werror, build_policy
+    nonotify      = False
+
+    # Arguments
+    global makeargs, autogenargs, cmakeargs, mesonargs
+    makeargs      = config['makeargs']
+    autogenargs   = '--disable-static --enable-gtk-doc '
+    cmekargs      = ' '
+    if config['enable_optdebug']:
+        mesonargs = '--buildtype=debugoptimized '
+    else:
+        mesonargs = '--buildtype=debug '
+    mesonargs += ' '.join([
+        # Recommended
+        '-Dgtk_doc=true',
+        '-Dman=true',
+        # Other
+        '-Dbuild_man=true',
+        '-Ddisable_gtkdoc=false',
+        '-Ddoc=true',
+        '-Ddocbook=true',
+        '-Ddocs=true',
+        '-Ddocumentation=true',
+        '-Denable-doc=true',
+        '-Denable-gtk-doc=true',
+        '-Denable-man=true',
+        '-Denable_docs=true',
+        '-Denable_gtk_doc=true',
+        '-Denable_valadoc=true',
+        '-Dgtk-doc=true',
+        '-Dman-pages=true',
+        '-Dmanpage=true',
+        '-Dwith_docs=true']) + ' '
+
+    # Create empty entries for CC, CXX, CFLAGS, CXXFLAGS
+    os.environ['CC']       = ''
+    os.environ['CXX']      = ''
+    os.environ['CFLAGS']   = ''
+    os.environ['CXXFLAGS'] = ''
+
+    # Autotools: enable additional features
+    module_autogenargs['gdm']          = autogenargs + '--enable-debug'
+    module_autogenargs['gtk-doc']      = autogenargs + '--with-highlight=auto'
+    module_autogenargs['gtk-vnc']      = autogenargs + '--with-examples'
+    module_autogenargs['jhbuild']      = autogenargs + '--enable-doc-installation'
+    module_autogenargs['weston']       = autogenargs + '--enable-xwayland --enable-rdp-compositor --enable-clients --enable-demo-clients-install'
+
+    # Autotools: disable GTK-Doc
+    module_autogenargs['farstream']    = autogenargs + '--disable-gtk-doc'
+
+    # Autotools: disable -Werror
+    module_autogenargs['easytag']      = autogenargs + '--disable-Werror'
+    module_autogenargs['gnome-photos'] = autogenargs + '--disable-Werror'
+    module_autogenargs['gupnp-av']     = autogenargs + '--disable-Werror'
+    module_autogenargs['libgdata']     = autogenargs + '--disable-always-build-tests'
+    module_autogenargs['rhythmbox']    = autogenargs + '--disable-more-warnings'
+    module_autogenargs['yelp']         = autogenargs + '--disable-Werror'
+
+    # CMake: enable GTK-Doc
+    module_cmakeargs['WebKit']                = cmakeargs + '-DENABLE_GTKDOC=ON -DENABLE_MINIBROWSER=ON -DENABLE_TOOLS=ON'
+    module_cmakeargs['evolution-data-server'] = cmakeargs + '-DENABLE_GTK_DOC=ON -DENABLE_GOOGLE_AUTH=ON'
+    module_cmakeargs['evolution']             = cmakeargs + '-DENABLE_GTK_DOC=ON -DENABLE_YTNEF=ON'
+    module_cmakeargs['evolution-ews']         = cmakeargs + '-DENABLE_GTK_DOC=ON'
+
+    # Meson: enable GTK-Doc and man pages
+    module_mesonargs['appstream-glib']        = mesonargs + '-Dgtk-doc=true'
+    module_mesonargs['at-spi2-core']          = mesonargs + '-Denable_docs=true'
+    module_mesonargs['atk']                   = mesonargs + '-Ddocs=true'
+    module_mesonargs['clutter-gtk']           = mesonargs + '-Denable_docs=true'
+    module_mesonargs['colord']                = mesonargs + '-Ddocs=true'
+    module_mesonargs['fwupd']                 = mesonargs + '-Denable-doc=true -Denable-man=true'
+    module_mesonargs['gcab']                  = mesonargs + '-Ddocs=true'
+    module_mesonargs['gdk-pixbuf']            = mesonargs + '-Ddocs=true'
+    module_mesonargs['geoclue']               = mesonargs + '-Dgtk-doc=true'
+    module_mesonargs['geocode-glib']          = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['gnome-bluetooth']       = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['gnome-builder']         = mesonargs + '-Dwith_docs=true'
+    module_mesonargs['gnome-calendar']        = mesonargs + '-Ddocumentation=true'
+    module_mesonargs['gnome-contacts']        = mesonargs + '-Ddocs=true -Dmanpage=true'
+    module_mesonargs['gnome-control-center']  = mesonargs + '-Ddocumentation=true'
+    module_mesonargs['gnome-dictionary']      = mesonargs + '-Dbuild_man=true'
+    module_mesonargs['gnome-documents']       = mesonargs + '-Ddocumentation=true'
+    module_mesonargs['gnome-session']         = mesonargs + '-Ddocbook=true'
+    module_mesonargs['gnome-todo']            = mesonargs + '-Ddocumentation=true'
+    module_mesonargs['gom']                   = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['grilo']                 = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['gst-plugins-base']      = mesonargs + '-Dgtk_doc=enabled'
+    module_mesonargs['gstreamer']             = mesonargs + '-Dgtk_doc=enabled'
+    module_mesonargs['gtk+']                  = mesonargs + '-Ddocumentation=true -Dman-pages=true'
+    module_mesonargs['json-glib']             = mesonargs + '-Ddocs=true'
+    module_mesonargs['jsonrpc-glib']          = mesonargs + '-Denable_gtk_doc=true'
+    module_mesonargs['libdazzle']             = mesonargs + '-Denable_gtk_doc=true'
+    module_mesonargs['libepoxy']              = mesonargs + '-Ddocs=true'
+    module_mesonargs['libgxps']               = mesonargs + '-Denable-gtk-doc=true -Denable-man=true'
+    module_mesonargs['libhttpseverywhere']    = mesonargs + '-Denable_valadoc=true'
+    module_mesonargs['libinput']              = mesonargs + '-Ddocumentation=true'
+    module_mesonargs['libsoup']               = mesonargs + '-Ddoc=true'
+    module_mesonargs['nautilus']              = mesonargs + '-Ddocs=true'
+    module_mesonargs['pango']                 = mesonargs + '-Denable_docs=true'
+    module_mesonargs['template-glib']         = mesonargs + '-Denable_gtk_doc=true'
+    module_mesonargs['totem']                 = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['totem-pl-parser']       = mesonargs + '-Denable-gtk-doc=true'
+    module_mesonargs['tracker']               = mesonargs + '-Ddocs=true'
+    module_mesonargs['tracker-miners']        = mesonargs + '-Ddocs=true'
+
+    if config['cputype']:
+        env.add('CFLAGS'  , '-march=' + config['cputype'])
+        env.add('CXXFLAGS', '-march=' + config['cputype'])
+        env.apply()
+
+    if config['binutils']:
+        if os.environ['CC'] == '':
+            env.add('CC',  'cc')
+        if os.environ['CXX'] == '':
+            env.add('CXX', 'c++')
+        env.add('CC'      , '-B' + config['binutils'])
+        env.add('CXX'     , '-B' + config['binutils'])
+        env.add('CFLAGS'  , '-B' + config['binutils'])
+        env.add('CXXFLAGS', '-B' + config['binutils'])
+        env.add('LDFLAGS' , '-B' + config['binutils'])
+        env.apply()
+
+    if config['enable_mirror']:
+        dvcs_mirror_dir = os.path.join(config['base'], 'repo')
+
+    # Non-default revision
+    branches['librsvg'] = 'master'
+
+    if not config['install_games']:
+        skip    += [ 'aisleriot',
+                     'five-or-more',
+                     'four-in-a-row',
+                     'gnome-chess',
+                     'gnome-klotski',
+                     'gnome-mahjongg',
+                     'gnome-mines',
+                     'gnome-nibbles',
+                     'gnome-robots',
+                     'gnome-sudoku',
+                     'gnome-taquin',
+                     'gnome-tetravex',
+                     'hitori',
+                     'iagno',
+                     'lightsoff',
+                     'quadrapassel',
+                     'swell-foop',
+                     'tali' ]
+
+    if config['install_world']:
+        modules += [ 'anjuta',
+                     'bijiben',
+                     'brasero',
+                     'd-feet',
+                     'easytag',
+                     'empathy',
+                     'easytag',
+                     'evolution-ews',
+                     'gimp',
+                     'glade',
+                     'gnome-chat',
+                     'gnome-latex',
+                     'gnome-packagekit',
+                     'gnome-system-log',
+                     'gucharmap',
+                     'nemiver',
+                     'seahorse' ]
+
+    if config['install_unusual']:
+        modules += [ 'aisleriot',
+                     'alacarte',
+                     'dia',
+                     'geary',
+                     'gnome-news',
+                     'gnumeric',
+                     'gthumb',
+                     'rhythmbox' ]
+
+    if config['install_wayland']:
+        modules += [ 'wayland',
+                     'weston' ]
+
+    if config['purpose'] == 'ci':
+        build_policy = 'updated-deps'
+        disable_Werror = False
+
+    if config['purpose'] == 'devel':
+        build_policy = 'updated'
+        use_local_modulesets = True
+        if config['enable_optdebug']:
+            env.add('CFLAGS'  , '-pipe -g3 -Og')
+            env.add('CXXFLAGS', '-pipe -g3 -Og')
+        else:
+            env.add('CFLAGS'  , '-pipe -g3 -O0')
+            env.add('CXXFLAGS', '-pipe -g3 -O0')
+        env.apply()
+
+    if config['compress_debug']:
+        env.add('CFLAGS',   '-gz')
+        env.add('CXXFLAGS', '-gz')
+        env.add('LDFLAGS',  '-Wl,--compress-debug-sections=zlib')
+        env.apply()
+
+    if sys.platform.startswith('freebsd'):
+        env.cmd('CC'      , 'clang')
+        env.cmd('CPP'     , 'clang-cpp')
+        env.cmd('CXX'     , 'clang++')
+        env.add('MAKE'    , 'gmake')
+        env.add('AWK'     , '/usr/bin/awk')
+        env.add('SED'     , '/usr/bin/sed')
+        env.add('INSTALL' , '/usr/bin/install')
+        env.apply()
+
+        # System libraries that cannot be detected
+        skip += [ 'openssl', 'speech-dispatcher' ]
+
+        # Autotools: disable coverage
+        module_autogenargs['cheese']              = autogenargs + '--disable-lcov'
+        module_autogenargs['gjs']                 = autogenargs + '--disable-coverage'
+
+        # Autotools: enable system-specific features
+        module_autogenargs['gvfs']                = autogenargs + '--enable-hal'
+        module_autogenargs['polkit']              = autogenargs + '--with-os-type=freebsd'
+        module_autogenargs['pulseaudio']          = autogenargs + '--enable-oss-output --disable-xen'
+
+        # Meson: path to iso-codes
+        module_mesonargs['geary']                 = mesonargs + '-Diso_639_xml=/usr/local/share/xml/iso-codes/iso_639.xml -Diso_3166_xml=/usr/local/share/xml/iso-codes/iso_3166.xml'
+
+        # Bashisms in configure script
+        mod_env.add('aisleriot'            , 'CONFIG_SHELL', '/usr/local/bin/bash')
+        mod_env.add('dleyna-connector-dbus', 'CONFIG_SHELL', '/usr/local/bin/bash')
+        mod_env.add('dleyna-renderer'      , 'CONFIG_SHELL', '/usr/local/bin/bash')
+        mod_env.apply()
+
+        # Format string troubles
+        mod_env.addm('anjuta'              , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('cheese'              , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('clutter'             , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('epiphany'            , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('evince'              , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('ghex'                , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('gitg'                , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('gnumeric'            , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('goffice'             , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('gthumb'              , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('mutter'              , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('nautilus-sendto'     , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('totem'               , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.addm('vinagre'             , 'CFLAGS', os.environ['CFLAGS'], '-Wno-error=format-nonliteral')
+        mod_env.apply()
+
+        if config['purpose'] == 'ci':
+            env.add('CC'      , '-std=c17')
+            env.add('CXX'     , '-std=c++17')
+            env.apply()
+
+            # Keep it buildable without patches
+            module_autogenargs['gnome-control-center'] = autogenargs + 'KRB5_CONFIG=/usr/local/bin/krb5-config'
+
+            # Need GNU extensions
+            mod_env.add('cairo'        , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('cogl'         , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('gegl'         , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('glib'         , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('graphene'     , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('guile'        , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('libcanberra'  , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('mutter'       , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('pulseaudio'   , 'CC' ,  'clang -std=gnu17')
+            mod_env.add('spice-gtk'    , 'CC' ,  'clang -std=gnu17')
+            mod_env.apply()
+
+            # Require GNU C89
+            mod_env.add('rhythmbox'    , 'CC' ,  'clang -std=gnu89')
+            mod_env.apply()
+
+        if config['purpose'] == 'devel':
+            env.add('CFLAGS'  , '-fdebug-macro')
+            env.add('CXXFLAGS', '-fdebug-macro')
+            env.apply()
+
+            branches['gdm']             = '3.17.2'
+            branches['accountsservice'] = '0.6.42'
+
+    # Environment
+    mod_env.addm('WebKit', 'CFLAGS'  , os.environ['CFLAGS']  , '-pipe -O3')
+    mod_env.addm('WebKit', 'CXXFLAGS', os.environ['CXXFLAGS'], '-pipe -O3')
+    mod_env.apply()
+
+    # Delete CC, CXX, CFLAGS, CXXFLAGS if empty
+    if os.environ['CC'] == '':
+        del os.environ['CC']
+    if os.environ['CXX'] == '':
+        del os.environ['CXX']
+    if os.environ['CFLAGS'] == '':
+        del os.environ['CFLAGS']
+    if os.environ['CXXFLAGS'] == '':
+        del os.environ['CXXFLAGS']
+
+
+def config_dbgprint(config):
+    if 'JHBUILDRC_DEBUG' not in os.environ:
+        return
+    if not os.environ['JHBUILDRC_DEBUG']:
+        return
+
+    sets = [ 'moduleset', 'modules', 'skip' ]
+    path = [ 'prefix', 'tarballdir', 'checkoutroot', 'buildroot',
+             'dvcs_mirror_dir' ]
+    sysc = [ 'conditions', 'modulesets_dir', 'system_prefix',
+             'extra_prefixes', 'system_libdirs' ]
+    conf = [ 'nonotify', 'use_local_modulesets', 'ignore_suggests',
+             'nice_build', 'partial_build', 'disable_Werror', 'build_policy' ]
+    args = [ 'makeargs', 'autogenargs', 'cmakeargs', 'mesonargs' ]
+    envs = [ 'CC', 'CPP', 'CXX', 'CFLAGS', 'CPPFLAGS', 'CXXFLAGS',
+             'LDFLAGS', 'MAKE' ]
+    mods = [ 'branches', 'module_extra_env', 'module_makeargs',
+             'module_autogenargs', 'module_cmakeargs', 'module_mesonargs' ]
+
+    def key_meta(x):
+        if x.startswith('meta-'):
+            return ' ' + x
+        else:
+            return x
+
+    for set_var in sets:
+        set_value = sorted(eval(set_var), key=key_meta)
+        for item in set_value:
+            info('{:10} <= {}'.format(set_var, item))
+        info('')
+
+    for path_var in path:
+        path_value = eval(path_var)
+        info('{:20} = {}'.format(path_var, path_value))
+    info('')
+
+    for system_conf_var in sysc:
+        system_conf_value = eval(system_conf_var)
+        if type(system_conf_value) == set:
+            system_conf_value = sorted(list(system_conf_value))
+        info('{:20} = {}'.format(system_conf_var, system_conf_value))
+    info('')
+
+    for conf_var in conf:
+        conf_value = eval(conf_var)
+        info('{:20} = {}'.format(conf_var, conf_value))
+    info('')
+
+    for arg_var in args:
+        arg_value = eval(arg_var)
+        info('{:20} = {}'.format(arg_var, arg_value))
+    info('')
+
+    for env_var in envs:
+        if env_var in os.environ:
+            info('environ: {:11} = {}'.format(env_var, os.environ[env_var]))
+        else:
+            info('environ: {:11} = <unset>'.format(env_var))
+    info('')
+
+    for mod_var in mods:
+        mod_value = eval(mod_var)
+        if len(mod_value) == 0:
+            continue
+        for key in sorted(mod_value.keys(), key=str.lower):
+            info('{:21}: {:30} = {}'.format(mod_var, key, mod_value[key]))
+        info('')
+
+
+def config_validate(config):
+    spec = {
+        'base'            : str,
+        'purpose'         : ['ci', 'devel'],
+        'cputype'         : str,
+        'binutils'        : str,
+        'makeargs'        : str,
+        'enable_mirror'   : bool,
+        'enable_optdebug' : bool,
+        'compress_debug'  : bool,
+        'install_games'   : bool,
+        'install_world'   : bool,
+        'install_unusual' : bool,
+        'install_wayland' : bool,
+    }
+
+    missing = set(spec) - set(config)
+    unknown = set(config) - set(spec)
+    if missing:
+        error('missing keys found in config: {}'.format(', '.join(missing)))
+        return False
+    if unknown:
+        error('unknown keys found in config: {}'.format(', '.join(unknown)))
+        return False
+
+    for key in spec:
+        if type(spec[key]) == type and type(config[key]) != spec[key]:
+            error('key {} has an invalid type: {} (should be {})'.
+                format(key, type(config[key]).__name__, spec[key].__name__))
+            return False
+        if type(spec[key]) == list and config[key] not in spec[key]:
+            error('key {} has an invalid value: {} (should be one of {})'.
+                format(key, config[key], ', '.join(spec[key])))
+            return False
+
+    return True
+
+
+assert(config_validate(config()) != False)
+assert(config_generate(config()) != False)
+assert(config_dbgprint(config()) != False)
+
+module_cmakeargs['WebKit'] += ' -DCMAKE_BUILD_TYPE=Release'

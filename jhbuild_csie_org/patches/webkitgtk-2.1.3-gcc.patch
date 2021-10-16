@@ -1,0 +1,47 @@
+Index: ChangeLog
+===================================================================
+--- ChangeLog	(revision 161659)
++++ ChangeLog	(working copy)
+@@ -1,3 +1,12 @@
++2014-01-10  Koop Mast <kwm@FreeBSD.org>
++
++        Use system default compiler instead of gcc, as final fall through.
++        https://bugs.webkit.org/show_bug.cgi?id=126773
++
++        Reviewed by NOBODY (OOPS!).
++
++        * Sources/WebCore/dom/make_names.pl:
++
+ 2014-01-09  Benjamin Poulain  <bpoulain@apple.com>
+ 
+         Remove the BlackBerry files outside WebCore
+Index: Source/WebCore/ChangeLog
+===================================================================
+--- Source/WebCore/ChangeLog	(revision 161659)
++++ Source/WebCore/ChangeLog	(working copy)
+@@ -1,3 +1,12 @@
++2014-01-10  Koop Mast <kwm@FreeBSD.org>
++
++        Use system default compiler instead of gcc, as final fall through.
++        https://bugs.webkit.org/show_bug.cgi?id=126773
++
++        Reviewed by NOBODY (OOPS!).
++
++        * dom/make_names.pl:
++
+ 2014-01-09  Andy Estes  <aestes@apple.com>
+ 
+         [iOS] Upstream iOS changes to MigrateHeaders.make
+Index: Source/WebCore/dom/make_names.pl
+===================================================================
+--- Source/WebCore/dom/make_names.pl	(revision 161659)
++++ Source/WebCore/dom/make_names.pl	(working copy)
+@@ -70,7 +70,7 @@
+ } elsif ($Config::Config{"osname"} eq "darwin" && $ENV{SDKROOT}) {
+     chomp($gccLocation = `xcrun -find cc -sdk '$ENV{SDKROOT}'`);
+ } else {
+-    $gccLocation = "/usr/bin/gcc";
++    $gccLocation = "/usr/bin/cc";
+ }
+ my $preprocessor = $gccLocation . " -E -x c++";
+ 

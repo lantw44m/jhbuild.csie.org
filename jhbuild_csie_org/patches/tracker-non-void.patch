@@ -1,0 +1,26 @@
+From 33174bf68adda35b399045c742ee527605d052cb Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Wed, 30 Jul 2014 11:27:16 +0800
+Subject: [PATCH] Fix "Non-void function should return a value"
+
+https://bugzilla.gnome.org/show_bug.cgi?id=733948
+---
+ src/libtracker-extract/tracker-extract-info.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libtracker-extract/tracker-extract-info.c b/src/libtracker-extract/tracker-extract-info.c
+index 63d77c6..c68c65a 100644
+--- a/src/libtracker-extract/tracker-extract-info.c
++++ b/src/libtracker-extract/tracker-extract-info.c
+@@ -322,7 +322,7 @@ tracker_extract_info_set_where_clause (TrackerExtractInfo *info,
+ MediaArtProcess *
+ tracker_extract_info_get_media_art_process (TrackerExtractInfo *info)
+ {
+-	g_return_if_fail (info != NULL);
++	g_return_val_if_fail (info != NULL, NULL);
+ 	return info->media_art_process;
+ }
+ 
+-- 
+2.0.2
+

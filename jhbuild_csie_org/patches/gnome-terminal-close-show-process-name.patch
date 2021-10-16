@@ -1,0 +1,69 @@
+diff --git a/src/terminal-window.c b/src/terminal-window.c
+index 2394d55..63bbbdc 100644
+--- a/src/terminal-window.c
++++ b/src/terminal-window.c
+@@ -3608,6 +3608,7 @@ confirm_close_window_or_tab (TerminalWindow *window,
+   GtkWidget *dialog;
+   gboolean do_confirm;
+   int n_tabs;
++  char *process_name = NULL, *cmdline = NULL;
+ 
+   if (priv->confirm_close_dialog)
+     {
+@@ -3623,7 +3624,7 @@ confirm_close_window_or_tab (TerminalWindow *window,
+ 
+   if (screen)
+     {
+-      do_confirm = terminal_screen_has_foreground_process (screen, NULL, NULL);
++      do_confirm = terminal_screen_has_foreground_process (screen, &process_name, &cmdline);
+       n_tabs = 1;
+     }
+   else
+@@ -3640,7 +3641,7 @@ confirm_close_window_or_tab (TerminalWindow *window,
+           TerminalScreen *terminal_screen;
+ 
+           terminal_screen = terminal_screen_container_get_screen (TERMINAL_SCREEN_CONTAINER (t->data));
+-          if (terminal_screen_has_foreground_process (terminal_screen, NULL, NULL))
++          if (terminal_screen_has_foreground_process (terminal_screen, &process_name, &cmdline))
+             {
+               do_confirm = TRUE;
+               break;
+@@ -3649,8 +3650,11 @@ confirm_close_window_or_tab (TerminalWindow *window,
+       g_list_free (tabs);
+     }
+ 
+-  if (!do_confirm)
++  if (!do_confirm) {
++    g_free (process_name);
++    g_free (cmdline);
+     return FALSE;
++  }
+ 
+   dialog = priv->confirm_close_dialog =
+     gtk_message_dialog_new (GTK_WINDOW (window),
+@@ -3661,12 +3665,12 @@ confirm_close_window_or_tab (TerminalWindow *window,
+ 
+   if (n_tabs > 1)
+     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+-                                              "%s", _("There are still processes running in some terminals in this window. "
+-                                                      "Closing the window will kill all of them."));
++                                              "%s\n%s\n%s", _("There are still processes running in some terminals in this window. "
++                                                      "Closing the window will kill all of them."), process_name, cmdline);
+   else
+     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+-                                              "%s", _("There is still a process running in this terminal. "
+-                                                      "Closing the terminal will kill it."));
++                                              "%s\n%s\n%s", _("There is still a process running in this terminal. "
++                                                      "Closing the terminal will kill it."), process_name, cmdline);
+ 
+   gtk_window_set_title (GTK_WINDOW (dialog), ""); 
+ 
+@@ -3687,6 +3691,8 @@ confirm_close_window_or_tab (TerminalWindow *window,
+ 
+   gtk_window_present (GTK_WINDOW (dialog));
+ 
++  g_free (process_name);
++  g_free (cmdline);
+   return TRUE;
+ }
+ 

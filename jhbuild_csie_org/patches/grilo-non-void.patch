@@ -1,0 +1,26 @@
+From c3b5b591f196e13e330966a69f03b44421ba4483 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Thu, 4 Dec 2014 02:01:38 +0800
+Subject: [PATCH] Fix "non-void function should return a value" for clang
+
+https://bugzilla.gnome.org/show_bug.cgi?id=741081
+---
+ src/data/grl-media-audio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/data/grl-media-audio.c b/src/data/grl-media-audio.c
+index 3f4ab4f..5dad9ad 100644
+--- a/src/data/grl-media-audio.c
++++ b/src/data/grl-media-audio.c
+@@ -507,7 +507,7 @@ grl_media_audio_get_mb_album_id (GrlMediaAudio *audio)
+ const gchar *
+ grl_media_audio_get_mb_artist_id (GrlMediaAudio *audio)
+ {
+-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
++  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
+   return grl_data_get_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ARTIST_ID);
+ }
+ 
+-- 
+2.1.2
+

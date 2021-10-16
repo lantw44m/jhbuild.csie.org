@@ -1,0 +1,29 @@
+From 66702869755995af80e60561ea72b65645bdc91f Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Thu, 13 Feb 2014 21:22:28 +0800
+Subject: [PATCH] Call AC_USE_SYSTEM_EXTENSIONS after AM_INIT_AUTOMAKE
+
+https://bugzilla.gnome.org/show_bug.cgi?id=724288
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4fd5af8..a82dedb 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -11,10 +11,10 @@ AC_INIT([totem-pl-parser],
+ AC_CONFIG_SRCDIR([plparse/totem-pl-parser.c])
+ AC_CONFIG_HEADERS([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
+-AC_USE_SYSTEM_EXTENSIONS
+ 
+ AM_INIT_AUTOMAKE([1.9 dist-xz no-dist-gzip check-news subdir-objects])
+ AM_MAINTAINER_MODE([enable])
++AC_USE_SYSTEM_EXTENSIONS
+ 
+ # Enable silent build when available (Automake 1.11)
+ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+-- 
+1.8.5.4
+

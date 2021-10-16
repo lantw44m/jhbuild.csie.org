@@ -1,0 +1,90 @@
+Index: Source/WebCore/ChangeLog
+===================================================================
+--- Source/WebCore/ChangeLog	(revision 171182)
++++ Source/WebCore/ChangeLog	(working copy)
+@@ -1,3 +1,19 @@
++2014-07-17  Ting-Wei Lan  <lantw44@gmail.com>
++
++        Build fixes for GStreamer >= 1.3.90
++        https://bugs.webkit.org/show_bug.cgi?id=134483
++
++        Reviewed by NOBODY (OOPS!).
++
++        gst-plugins-bad API is changed in this commit:
++        http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/commit/?id=22dfd9aef361c6e630fe32d6b7f6c07588a2dff9
++
++        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp:
++        (WebCore::MediaPlayerPrivateGStreamer::handleMessage):
++        (WebCore::MediaPlayerPrivateGStreamer::processMpegtsSection):
++        (WebCore::MediaPlayerPrivateGStreamer::processMpegTsSection): Deleted.
++        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h:
++
+ 2014-07-17  Vineet Chaudhary  <code.vineet@gmail.com>
+ 
+         [GObject] StrictTypeChecking extended attribute fails for methods with sequence<T>.
+Index: Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+===================================================================
+--- Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp	(revision 171182)
++++ Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp	(working copy)
+@@ -1002,9 +1002,9 @@ gboolean MediaPlayerPrivateGStreamer::ha
+         }
+ #if ENABLE(VIDEO_TRACK) && USE(GSTREAMER_MPEGTS)
+         else {
+-            GstMpegTsSection* section = gst_message_parse_mpegts_section(message);
++            GstMpegtsSection* section = gst_message_parse_mpegts_section(message);
+             if (section) {
+-                processMpegTsSection(section);
++                processMpegtsSection(section);
+                 gst_mpegts_section_unref(section);
+             }
+         }
+@@ -1044,15 +1044,15 @@ void MediaPlayerPrivateGStreamer::proces
+ }
+ 
+ #if ENABLE(VIDEO_TRACK) && USE(GSTREAMER_MPEGTS)
+-void MediaPlayerPrivateGStreamer::processMpegTsSection(GstMpegTsSection* section)
++void MediaPlayerPrivateGStreamer::processMpegtsSection(GstMpegtsSection* section)
+ {
+     ASSERT(section);
+ 
+     if (section->section_type == GST_MPEGTS_SECTION_PMT) {
+-        const GstMpegTsPMT* pmt = gst_mpegts_section_get_pmt(section);
++        const GstMpegtsPMT* pmt = gst_mpegts_section_get_pmt(section);
+         m_metadataTracks.clear();
+         for (guint i = 0; i < pmt->streams->len; ++i) {
+-            const GstMpegTsPMTStream* stream = static_cast<const GstMpegTsPMTStream*>(g_ptr_array_index(pmt->streams, i));
++            const GstMpegtsPMTStream* stream = static_cast<const GstMpegtsPMTStream*>(g_ptr_array_index(pmt->streams, i));
+             if (stream->stream_type == 0x05 || stream->stream_type >= 0x80) {
+                 AtomicString pid = String::number(stream->pid);
+                 RefPtr<InbandMetadataTextTrackPrivateGStreamer> track = InbandMetadataTextTrackPrivateGStreamer::create(
+@@ -1071,7 +1071,7 @@ void MediaPlayerPrivateGStreamer::proces
+                 String inbandMetadataTrackDispatchType;
+                 appendUnsignedAsHexFixedSize(stream->stream_type, inbandMetadataTrackDispatchType, 2);
+                 for (guint j = 0; j < stream->descriptors->len; ++j) {
+-                    const GstMpegTsDescriptor* descriptor = static_cast<const GstMpegTsDescriptor*>(g_ptr_array_index(stream->descriptors, j));
++                    const GstMpegtsDescriptor* descriptor = static_cast<const GstMpegtsDescriptor*>(g_ptr_array_index(stream->descriptors, j));
+                     for (guint k = 0; k < descriptor->length; ++k)
+                         appendByteAsHex(descriptor->data[k], inbandMetadataTrackDispatchType);
+                 }
+Index: Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h
+===================================================================
+--- Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h	(revision 171182)
++++ Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h	(working copy)
+@@ -46,7 +46,7 @@
+ typedef struct _GstBuffer GstBuffer;
+ typedef struct _GstMessage GstMessage;
+ typedef struct _GstElement GstElement;
+-typedef struct _GstMpegTsSection GstMpegTsSection;
++typedef struct _GstMpegtsSection GstMpegtsSection;
+ 
+ namespace WebCore {
+ 
+@@ -151,7 +151,7 @@ private:
+     void setDownloadBuffering();
+     void processBufferingStats(GstMessage*);
+ #if ENABLE(VIDEO_TRACK) && USE(GSTREAMER_MPEGTS)
+-    void processMpegTsSection(GstMpegTsSection*);
++    void processMpegtsSection(GstMpegtsSection*);
+ #endif
+ #if ENABLE(VIDEO_TRACK)
+     void processTableOfContents(GstMessage*);

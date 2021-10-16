@@ -1,0 +1,42 @@
+Index: Tools/ChangeLog
+===================================================================
+--- Tools/ChangeLog	(revision 164190)
++++ Tools/ChangeLog	(working copy)
+@@ -316,6 +316,15 @@
+         * DumpRenderTree/mac/UIDelegate.mm: (-[UIDelegate webCryptoMasterKeyForWebView:]):
+         Use the SPI to specify a key.
+ 
++2014-02-13  Ting-Wei Lan  <lantw44@gmail.com>
++
++        [GTK] Quote the CC and PKG_CONFIG variable
++        https://bugs.webkit.org/show_bug.cgi?id=128727
++
++        Reviewed by NOBODY (OOPS!).
++
++        * gtk/GNUmakefile.am:
++
+ 2014-02-13  Sergio Villar Senin  <svillar@igalia.com>
+ 
+         Unreviewed. Moved myself to the list of reviewers.
+Index: Tools/gtk/GNUmakefile.am
+===================================================================
+--- Tools/gtk/GNUmakefile.am	(revision 164190)
++++ Tools/gtk/GNUmakefile.am	(working copy)
+@@ -45,7 +45,7 @@ docs_build_stamp_list += \
+ 	$(top_builddir)/DerivedSources/webkitdom/docs/webkitdomgtk-sections.txt
+ 
+ docs-build.stamp: $(docs_build_stamp_list)
+-	CC=$(CC) $(srcdir)/Tools/gtk/generate-gtkdoc
++	CC="$(CC)" $(srcdir)/Tools/gtk/generate-gtkdoc
+ 	@touch docs-build.stamp
+ 
+ clean-local: doc-clean-local
+@@ -128,7 +128,7 @@ endif
+ 	  fi; \
+ 	fi
+ if ENABLE_GTK_DOC
+-	@$(AM_V_GEN) PKG_CONFIG=$(PKG_CONFIG) $(PYTHON) $(srcdir)/Tools/gtk/generate-gtkdoc --rebase --virtual-root=$${DESTDIR}
++	@$(AM_V_GEN) PKG_CONFIG="$(PKG_CONFIG)" $(PYTHON) $(srcdir)/Tools/gtk/generate-gtkdoc --rebase --virtual-root=$${DESTDIR}
+ endif
+ 
+ uninstall-local:

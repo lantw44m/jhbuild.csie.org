@@ -1,0 +1,51 @@
+Index: Source/WebCore/bindings/scripts/preprocessor.pm
+===================================================================
+--- Source/WebCore/bindings/scripts/preprocessor.pm	(revision 164011)
++++ Source/WebCore/bindings/scripts/preprocessor.pm	(working copy)
+@@ -45,14 +45,16 @@
+     my @args = ();
+     if (!$preprocessor) {
+         require Config;
+-        if ($ENV{CC}) {
+-            $preprocessor = $ENV{CC};
++        if ($ENV{CXX}) {
++            $preprocessor = $ENV{CXX};
+         } elsif (($Config::Config{'osname'}) =~ /solaris/i) {
+-            $preprocessor = "/usr/sfw/bin/gcc";
+-        } elsif (-x "/usr/bin/clang") {
+-            $preprocessor = "/usr/bin/clang";
++            $preprocessor = "/usr/sfw/bin/g++";
++        } elsif (-x "/usr/bin/clang++") {
++            $preprocessor = "/usr/bin/clang++";
++        } elsif (-x "/usr/bin/g++") {
++            $preprocessor = "/usr/bin/g++";
+         } else {
+-            $preprocessor = "/usr/bin/gcc";
++            $preprocessor = "/usr/bin/c++";
+         }
+         push(@args, qw(-E -P -x c++));
+     }
+Index: Source/WebCore/dom/make_names.pl
+===================================================================
+--- Source/WebCore/dom/make_names.pl	(revision 164011)
++++ Source/WebCore/dom/make_names.pl	(working copy)
+@@ -63,14 +63,14 @@
+ require Config;
+ 
+ my $gccLocation = "";
+-if ($ENV{CC}) {
+-    $gccLocation = $ENV{CC};
++if ($ENV{CXX}) {
++    $gccLocation = $ENV{CXX};
+ } elsif (($Config::Config{"osname"}) =~ /solaris/i) {
+-    $gccLocation = "/usr/sfw/bin/gcc";
++    $gccLocation = "/usr/sfw/bin/g++";
+ } elsif ($Config::Config{"osname"} eq "darwin" && $ENV{SDKROOT}) {
+-    chomp($gccLocation = `xcrun -find cc -sdk '$ENV{SDKROOT}'`);
++    chomp($gccLocation = `xcrun -find c++ -sdk '$ENV{SDKROOT}'`);
+ } else {
+-    $gccLocation = "/usr/bin/cc";
++    $gccLocation = "/usr/bin/c++";
+ }
+ my $preprocessor = $gccLocation . " -E -x c++";
+ 

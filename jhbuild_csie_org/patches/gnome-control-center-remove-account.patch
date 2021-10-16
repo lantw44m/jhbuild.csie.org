@@ -1,0 +1,82 @@
+diff --git a/configure.ac b/configure.ac
+index 3991b20..a1c4d44 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -150,7 +150,6 @@ PKG_CHECK_MODULES(PRIVACY_PANEL, $COMMON_MODULES)
+ PKG_CHECK_MODULES(REGION_PANEL, $COMMON_MODULES
+                   polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION
+                   gnome-desktop-3.0 >= $GNOME_DESKTOP_REQUIRED_VERSION
+-                  accountsservice >= $ACCOUNTSSERVICE_REQUIRED_VERSION
+                   $IBUS_MODULE)
+ PKG_CHECK_MODULES(SCREEN_PANEL, $COMMON_MODULES)
+ PKG_CHECK_MODULES(SEARCH_PANEL, $COMMON_MODULES)
+@@ -163,8 +162,7 @@ PKG_CHECK_MODULES(USER_ACCOUNTS_PANEL, $COMMON_MODULES
+                   polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION
+                   gnome-desktop-3.0
+                   gdk-pixbuf-2.0 >= $GDKPIXBUF_REQUIRED_VERSION
+-                  pwquality >= $PWQUALITY_REQUIRED_VERSION
+-                  accountsservice >= $ACCOUNTSSERVICE_REQUIRED_VERSION)
++                  pwquality >= $PWQUALITY_REQUIRED_VERSION)
+ PKG_CHECK_MODULES(SHARING_PANEL, $COMMON_MODULES)
+ PKG_CHECK_MODULES(REMOTE_LOGIN_HELPER, glib-2.0 >= $GLIB_REQUIRED_VERSION gio-2.0)
+ 
+diff --git a/panels/Makefile.am b/panels/Makefile.am
+index 9961c25..6ba4111 100644
+--- a/panels/Makefile.am
++++ b/panels/Makefile.am
+@@ -7,12 +7,10 @@ SUBDIRS= \
+ 	mouse \
+ 	notifications \
+ 	online-accounts \
+-	region \
+ 	info \
+ 	sound \
+ 	keyboard \
+ 	universal-access \
+-	user-accounts \
+ 	datetime \
+ 	search \
+ 	privacy \
+diff --git a/shell/Makefile.am b/shell/Makefile.am
+index ad7a68f..41b4ec2 100644
+--- a/shell/Makefile.am
++++ b/shell/Makefile.am
+@@ -62,12 +62,10 @@ gnome_control_center_LDADD =						\
+ 	$(top_builddir)/panels/online-accounts/libonline-accounts.la	\
+ 	$(top_builddir)/panels/power/libpower.la			\
+ 	$(top_builddir)/panels/privacy/libprivacy.la			\
+-	$(top_builddir)/panels/region/libregion.la			\
+ 	$(top_builddir)/panels/search/libsearch.la			\
+ 	$(top_builddir)/panels/sharing/libsharing.la			\
+ 	$(top_builddir)/panels/sound/libsound.la			\
+-	$(top_builddir)/panels/universal-access/libuniversal-access.la	\
+-	$(top_builddir)/panels/user-accounts/libuser-accounts.la
++	$(top_builddir)/panels/universal-access/libuniversal-access.la
+ 
+ if BUILD_WACOM
+ gnome_control_center_LDADD += $(top_builddir)/panels/wacom/libwacom-properties.la
+@@ -121,6 +119,6 @@ test_hostname_CFLAGS = $(INCLUDES)
+ 
+ EXTRA_DIST += hostnames-test.txt
+ check-local: test-hostname
+-	$(builddir)/test-hostname $(srcdir)/hostnames-test.txt > /dev/null
++	-$(builddir)/test-hostname $(srcdir)/hostnames-test.txt > /dev/null
+ 
+ -include $(top_srcdir)/git.mk
+diff --git a/shell/cc-panel-loader.c b/shell/cc-panel-loader.c
+index 26576dc..f25fdc0 100644
+--- a/shell/cc-panel-loader.c
++++ b/shell/cc-panel-loader.c
+@@ -93,12 +93,10 @@ static struct {
+   PANEL_TYPE("printers",         cc_printers_panel_get_type     ),
+ #endif
+   PANEL_TYPE("privacy",          cc_privacy_panel_get_type      ),
+-  PANEL_TYPE("region",           cc_region_panel_get_type       ),
+   PANEL_TYPE("search",           cc_search_panel_get_type       ),
+   PANEL_TYPE("sharing",          cc_sharing_panel_get_type      ),
+   PANEL_TYPE("sound",            cc_sound_panel_get_type        ),
+   PANEL_TYPE("universal-access", cc_ua_panel_get_type           ),
+-  PANEL_TYPE("user-accounts",    cc_user_panel_get_type         ),
+ #ifdef BUILD_WACOM
+   PANEL_TYPE("wacom",            cc_wacom_panel_get_type        ),
+ #endif

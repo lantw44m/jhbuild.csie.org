@@ -1,0 +1,26 @@
+diff --git a/src/libbiji/biji-local-note.c b/src/libbiji/biji-local-note.c
+index 2393930..7d997d7 100644
+--- a/src/libbiji/biji-local-note.c
++++ b/src/libbiji/biji-local-note.c
+@@ -42,7 +42,7 @@ local_note_get_place (BijiItem *local)
+   BijiLocalNote *self;
+   const BijiProviderInfo *info;
+ 
+-  g_return_if_fail (BIJI_IS_LOCAL_NOTE (local));
++  g_return_val_if_fail (BIJI_IS_LOCAL_NOTE (local), NULL);
+ 
+   self = BIJI_LOCAL_NOTE (local);
+   info = biji_provider_get_info (self->priv->provider);
+diff --git a/src/libbiji/provider/biji-own-cloud-note.c b/src/libbiji/provider/biji-own-cloud-note.c
+index cee121c..0308401 100644
+--- a/src/libbiji/provider/biji-own-cloud-note.c
++++ b/src/libbiji/provider/biji-own-cloud-note.c
+@@ -51,7 +51,7 @@ ocloud_note_get_place (BijiItem *local)
+   BijiOwnCloudNote *self;
+   const BijiProviderInfo *info;
+ 
+-  g_return_if_fail (BIJI_IS_OWN_CLOUD_NOTE (local));
++  g_return_val_if_fail (BIJI_IS_OWN_CLOUD_NOTE (local), NULL);
+ 
+   self = BIJI_OWN_CLOUD_NOTE (local);
+   info = biji_provider_get_info (BIJI_PROVIDER (self->priv->prov));

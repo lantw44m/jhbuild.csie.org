@@ -1,0 +1,25 @@
+From 833e02cc9ef4a2dc65a040fdb857e355dda0df6d Mon Sep 17 00:00:00 2001
+From: LAN-TW <lantw44@gmail.com>
+Date: Fri, 21 Mar 2014 09:49:43 +0800
+Subject: [PATCH] Fix "void function should not return a value" error for clang
+
+---
+ cogl-gst/cogl-gst-video-sink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cogl-gst/cogl-gst-video-sink.c b/cogl-gst/cogl-gst-video-sink.c
+index 42b50a9..dfa3019 100644
+--- a/cogl-gst/cogl-gst-video-sink.c
++++ b/cogl-gst/cogl-gst-video-sink.c
+@@ -1665,7 +1665,7 @@ cogl_gst_video_sink_get_natural_size (CoglGstVideoSink *vt,
+ {
+   GstVideoInfo *info;
+ 
+-  g_return_val_if_fail (COGL_GST_IS_VIDEO_SINK (vt), 0.);
++  g_return_if_fail (COGL_GST_IS_VIDEO_SINK (vt));
+ 
+   info = &vt->priv->info;
+ 
+-- 
+1.8.5.4
+

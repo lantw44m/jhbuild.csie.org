@@ -1,0 +1,25 @@
+From ee09dbe29022102644cbdc8aa620fa61b0670408 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Sun, 1 Jun 2014 09:53:26 +0800
+Subject: [PATCH] build: Fix gtk-doc building problem
+
+https://bugzilla.gnome.org/show_bug.cgi?id=731061
+---
+ help/reference/shell/Makefile.am | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/help/reference/shell/Makefile.am b/help/reference/shell/Makefile.am
+index e57a13c..8726fba 100644
+--- a/help/reference/shell/Makefile.am
++++ b/help/reference/shell/Makefile.am
+@@ -113,6 +113,7 @@ FILTER_OUT = \
+ 
+ GTKDOC_LIBS = \
+ 	$(top_builddir)/cut-n-paste/gimpcellrenderertoggle/libgimpcellrenderertoggle.la	\
++	$(top_builddir)/cut-n-paste/libgd/libgd.la			\
+ 	$(top_builddir)/properties/libevproperties.la			\
+ 	$(top_builddir)/libdocument/libevdocument3.la			\
+ 	$(top_builddir)/libview/libevview3.la				\
+-- 
+1.9.3
+

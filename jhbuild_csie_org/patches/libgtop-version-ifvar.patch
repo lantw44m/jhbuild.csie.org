@@ -1,0 +1,31 @@
+diff --git a/libgtop-sysdeps.m4 b/libgtop-sysdeps.m4
+index fad6af9..f2d4e67 100644
+--- a/libgtop-sysdeps.m4
++++ b/libgtop-sysdeps.m4
+@@ -172,7 +172,10 @@ AC_DEFUN([GNOME_LIBGTOP_SYSDEPS],[
+ 
+ 	  AC_SUBST(EXTRA_SYSDEPS_LIBS)
+ 
+-	  AC_CHECK_HEADERS(net/if_var.h)
++	  AC_CHECK_HEADERS(net/if_var.h,,, [
++#include <net/if.h>
++#include <sys/types.h>
++#include <sys/socket.h>])
+ 	  AC_MSG_CHECKING([for I4B])
+ 	  AC_TRY_COMPILE([
+ #include <sys/types.h>
+diff --git a/sysdeps/freebsd/open.c b/sysdeps/freebsd/open.c
+index 39a768d..f976d0f 100644
+--- a/sysdeps/freebsd/open.c
++++ b/sysdeps/freebsd/open.c
+@@ -43,10 +43,6 @@ glibtop_open_s (glibtop *server, const char *program_name,
+ 	server->real_ncpu = ncpus - 1;
+ 	server->ncpu = MIN(GLIBTOP_NCPU - 1, server->real_ncpu);
+ 
+-#if defined(__FreeBSD_kernel__)
+-	server->os_version_code = __FreeBSD_kernel_version;
+-#else
+ 	server->os_version_code = __FreeBSD_version;
+-#endif
+ 
+ }

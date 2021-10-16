@@ -1,0 +1,127 @@
+From 822150c6f48117a07884d43110ee0f91505221c1 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Mon, 20 Jan 2014 15:34:53 +0800
+Subject: [PATCH] Fix build problem on FreeBSD
+
+ 1. Fallback to fsync() if fdatasync() is not available.
+ 2. Check whether setnetgrent() has a return value.
+ 3. Check whether the system has SIGPOLL.
+ 4. Add configure option to disable test. mocklibc cannot be built on FreeBSD
+    because of function prototype conflict.
+---
+ Makefile.am                                        |  6 +++++-
+ configure.ac                                       | 22 +++++++++++++++++++++-
+ src/polkitagent/polkitagenthelperprivate.c         |  5 +++++
+ .../polkitbackendinteractiveauthority.c            |  4 ++++
+ src/polkitbackend/polkitbackendjsauthority.c       |  2 ++
+ 5 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 16bd0bc..39e226a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,6 +1,10 @@
+ ## Process this file with automake to produce Makefile.in
+ 
+-SUBDIRS = actions data src docs po test
++SUBDIRS = actions data src docs po
++
++if BUILD_TEST
++SUBDIRS += test
++endif
+ 
+ NULL =
+ 
+diff --git a/configure.ac b/configure.ac
+index 2128263..f614a54 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -158,13 +158,33 @@ AC_CHECK_LIB(expat,XML_ParserCreate,[EXPAT_LIBS="-lexpat"],
+ 	     [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
+ AC_SUBST(EXPAT_LIBS)
+ 
+-AC_CHECK_FUNCS(clearenv)
++AC_CHECK_FUNCS(clearenv fdatasync)
+ 
+ if test "x$GCC" = "xyes"; then
+   LDFLAGS="-Wl,--as-needed $LDFLAGS"
+ fi
+ 
+ dnl ---------------------------------------------------------------------------
++dnl - Check for function return type
++dnl ---------------------------------------------------------------------------
++
++AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
++	#include <stddef.h>
++	#include <netdb.h>
++]], [[
++	int r = setnetgrent (NULL);]])],
++[AC_DEFINE([HAVE_SETNETGRENT_RETURN], 1, [Define to 1 if setnetgrent has return value])])
++
++dnl ---------------------------------------------------------------------------
++dnl - Check whether we want to build test
++dnl ---------------------------------------------------------------------------
++AC_ARG_ENABLE([test],
++              [AS_HELP_STRING([--disable-test], [Do not build the test])],
++              [enable_test=$enableval], [enable_test=yes])
++
++AM_CONDITIONAL(BUILD_TEST, [test "x$enable_test" = "xyes"])
++
++dnl ---------------------------------------------------------------------------
+ dnl - Select wether to use libsystemd-login or ConsoleKit for session tracking
+ dnl ---------------------------------------------------------------------------
+ 
+diff --git a/src/polkitagent/polkitagenthelperprivate.c b/src/polkitagent/polkitagenthelperprivate.c
+index 4417e70..cfa77fc 100644
+--- a/src/polkitagent/polkitagenthelperprivate.c
++++ b/src/polkitagent/polkitagenthelperprivate.c
+@@ -103,7 +103,12 @@ flush_and_wait ()
+ {
+   fflush (stdout);
+   fflush (stderr);
++#ifdef HAVE_FDATASYNC
+   fdatasync (fileno(stdout));
+   fdatasync (fileno(stderr));
++#else
++  fsync (fileno(stdout));
++  fsync (fileno(stderr));
++#endif
+   usleep (100 * 1000);
+ }
+diff --git a/src/polkitbackend/polkitbackendinteractiveauthority.c b/src/polkitbackend/polkitbackendinteractiveauthority.c
+index 3bd2f0b..15e3a44 100644
+--- a/src/polkitbackend/polkitbackendinteractiveauthority.c
++++ b/src/polkitbackend/polkitbackendinteractiveauthority.c
+@@ -2113,11 +2113,15 @@ get_users_in_net_group (PolkitIdentity                    *group,
+   ret = NULL;
+   name = polkit_unix_netgroup_get_name (POLKIT_UNIX_NETGROUP (group));
+ 
++#ifdef HAVE_SETNETGRENT
+   if (setnetgrent (name) == 0)
+     {
+       g_warning ("Error looking up net group with name %s: %s", name, g_strerror (errno));
+       goto out;
+     }
++#else
++  setnetgrent (name);
++#endif
+ 
+   for (;;)
+     {
+diff --git a/src/polkitbackend/polkitbackendjsauthority.c b/src/polkitbackend/polkitbackendjsauthority.c
+index c3885a9..c507595 100644
+--- a/src/polkitbackend/polkitbackendjsauthority.c
++++ b/src/polkitbackend/polkitbackendjsauthority.c
+@@ -1286,7 +1286,9 @@ get_signal_name (gint signal_number)
+     _HANDLE_SIG (SIGTTIN);
+     _HANDLE_SIG (SIGTTOU);
+     _HANDLE_SIG (SIGBUS);
++#ifdef SIGPOLL
+     _HANDLE_SIG (SIGPOLL);
++#endif
+     _HANDLE_SIG (SIGPROF);
+     _HANDLE_SIG (SIGSYS);
+     _HANDLE_SIG (SIGTRAP);
+-- 
+1.8.5.2
+

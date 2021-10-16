@@ -1,0 +1,13 @@
+diff --git a/Source/WTF/wtf/Platform.h b/Source/WTF/wtf/Platform.h
+index 6cc115e..46a06f2 100644
+--- a/Source/WTF/wtf/Platform.h
++++ b/Source/WTF/wtf/Platform.h
+@@ -714,7 +714,7 @@
+    low-level interpreter. */
+ #if !defined(ENABLE_LLINT) \
+     && ENABLE(JIT) \
+-    && (OS(DARWIN) || OS(LINUX)) \
++    && (OS(DARWIN) || OS(LINUX) || OS(FREEBSD)) \
+     && (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(GTK)) \
+     && (CPU(X86) || CPU(X86_64) || CPU(ARM_THUMB2) || CPU(ARM_TRADITIONAL) || CPU(ARM64) || CPU(MIPS) || CPU(SH4))
+ #define ENABLE_LLINT 1

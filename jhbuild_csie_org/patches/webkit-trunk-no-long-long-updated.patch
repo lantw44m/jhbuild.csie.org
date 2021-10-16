@@ -1,0 +1,23 @@
+Index: Source/WebKit2/Platform/IPC/ArgumentCoders.h
+===================================================================
+--- Source/WebKit2/Platform/IPC/ArgumentCoders.h	(revision 173807)
++++ Source/WebKit2/Platform/IPC/ArgumentCoders.h	(working copy)
+@@ -107,15 +107,15 @@
+ template<typename Rep, typename Period> struct ArgumentCoder<std::chrono::duration<Rep, Period>> {
+     static void encode(ArgumentEncoder& encoder, const std::chrono::duration<Rep, Period>& duration)
+     {
+-        encoder << duration.count();
++        encoder << static_cast<int64_t>(duration.count());
+     }
+ 
+     static bool decode(ArgumentDecoder& decoder, std::chrono::duration<Rep, Period>& result)
+     {
+-        Rep count;
++        int64_t count;
+         if (!decoder.decode(count))
+             return false;
+-        result = std::chrono::duration<Rep, Period>(count);
++        result = std::chrono::duration<Rep, Period>(static_cast<Rep>(count));
+         return true;
+     }
+ };

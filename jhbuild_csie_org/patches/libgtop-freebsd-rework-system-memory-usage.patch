@@ -1,0 +1,138 @@
+From 3c23b3d2ea8762770542e63af275c2704e5c2e83 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Sat, 2 May 2015 21:36:22 +0800
+Subject: [PATCH] freebsd: rework system memory usage
+
+Change the value of memory usage from:
+
+  Used   = Wired
+  Free   = Total - Wired
+  Shared = 0
+  Buffer = 0
+  Cached = Cached
+  User   = Wired - Cached
+  Locked = Not Supported
+
+To:
+
+  Used   = Active
+  Free   = Free
+  Shared = 0
+  Buffer = Buf
+  Cached = Cached
+  User   = Active + Wired
+  Locked = Wired
+
+The left-hand side means fields in the glibtop_mem struct and the right-hand
+side means the value showed by `top' command. This change should make the value
+showed by gnome-system-monitor, which uses `User' field, become closer to
+the real memory usage.
+
+All sysctlbyname code in sysdeps/freebsd/mem.c has been moved to separate
+functions to make the code cleaner.
+---
+ sysdeps/freebsd/mem.c | 69 +++++++++++++++++++++++++++++----------------------
+ 1 file changed, 40 insertions(+), 29 deletions(-)
+
+diff --git a/sysdeps/freebsd/mem.c b/sysdeps/freebsd/mem.c
+index 3e1d4ab..b4e0659 100644
+--- a/sysdeps/freebsd/mem.c
++++ b/sysdeps/freebsd/mem.c
+@@ -31,7 +31,7 @@ static const unsigned long _glibtop_sysdeps_mem =
+ (1L << GLIBTOP_MEM_TOTAL) + (1L << GLIBTOP_MEM_USED) +
+ (1L << GLIBTOP_MEM_FREE) + (1L << GLIBTOP_MEM_SHARED) +
+ (1L << GLIBTOP_MEM_BUFFER) + (1L << GLIBTOP_MEM_CACHED) +
+-(1L << GLIBTOP_MEM_USER);
++(1L << GLIBTOP_MEM_USER) + (1L << GLIBTOP_MEM_LOCKED);
+ 
+ /* these are for getting the memory statistics */
+ static int pagesize;
+@@ -45,46 +45,57 @@ _glibtop_init_mem_s (glibtop *server)
+ 	server->sysdeps.mem = _glibtop_sysdeps_mem;
+ }
+ 
++static gulong mem_get_by_bytes (glibtop *server, const char *name) {
++	gulong result = 0;
++	size_t len = sizeof (result);
++
++	if (sysctlbyname (name, &result, &len, NULL, 0)) {
++		glibtop_warn_io_r (server, "sysctl (%s)", name);
++	}
++	return result;
++}
++
++static gulong mem_get_by_pages (glibtop *server, const char *name) {
++	guint result = 0;
++	size_t len = sizeof (result);
++
++	if (sysctlbyname (name, &result, &len, NULL, 0)) {
++		glibtop_warn_io_r (server, "sysctl (%s)", name);
++	}
++	return (gulong) result * pagesize;
++}
++
+ void
+ glibtop_get_mem_s (glibtop *server, glibtop_mem *buf)
+ {
+ 	gulong memtotal;
+-	guint memused;
+-	gulong buffers;
+-	guint cached;
+-	size_t len;
++	gulong memactive;
++	gulong meminactive;
++	gulong memwired;
++	gulong memcached;
++	gulong membuffer;
++	gulong memfree;
+ 
+ 	glibtop_init_s (&server, GLIBTOP_SYSDEPS_MEM, 0);
+ 
+ 	memset (buf, 0, sizeof *buf);
+ 
+-	len = sizeof (memtotal);
+-	if (sysctlbyname ("hw.physmem", &memtotal, &len, NULL, 0)) {
+-		glibtop_warn_io_r (server, "sysctl (hw.physmem)");
+-		return;
+-	}
+-
+-	len = sizeof (memused);
+-	if (sysctlbyname ("vm.stats.vm.v_wire_count", &memused, &len, NULL, 0)) {
+-		glibtop_warn_io_r (server, "sysctl (vm.stats.vm.v_wire_count)");
+-		return;
+-	}
+-
+-	len = sizeof (cached);
+-	if (sysctlbyname ("vm.stats.vm.v_cache_count", &cached, &len, NULL, 0)) {
+-		glibtop_warn_io_r (server, "sysctl (vm.stats.vm.v_cache_count)");
+-		return;
+-	}
+-
+-	buffers = 0;
++	memtotal = mem_get_by_bytes (server, "hw.physmem");
++	memactive = mem_get_by_pages (server, "vm.stats.vm.v_active_count");
++	meminactive = mem_get_by_pages (server, "vm.stats.vm.v_inactive_count");
++	memwired = mem_get_by_pages (server, "vm.stats.vm.v_wire_count");
++	memcached = mem_get_by_pages (server, "vm.stats.vm.v_cache_count");
++	membuffer = mem_get_by_bytes (server, "vfs.bufspace");
++	memfree = mem_get_by_pages (server, "vm.stats.vm.v_free_count");
+ 
+ 	buf->total = memtotal;
+-	buf->used = (memused * (gulong) pagesize);
+-	buf->free = (buf->total - buf->used);
++	buf->used = memactive;
++	buf->free = memfree;
+ 	buf->shared = 0;
+-	buf->cached = (cached * (gulong) pagesize);
+-	buf->buffer = buffers;
++	buf->buffer = membuffer;
++	buf->cached = memcached;
++	buf->locked = memwired;
+ 
+-	buf->user = buf->total - buf->free - buf->cached - buf->buffer;
++	buf->user = buf->used + buf->locked;
+ 	buf->flags = _glibtop_sysdeps_mem;
+ }
+-- 
+2.3.7
+

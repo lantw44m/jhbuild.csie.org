@@ -1,0 +1,30 @@
+From a16d8cb42d2b17a8c8ab136ffd6407bc13be8eb5 Mon Sep 17 00:00:00 2001
+From: Colin Walters <walters@verbum.org>
+Date: Thu, 27 Feb 2014 08:53:48 -0500
+Subject: [PATCH] scanner: Ignore C11 _Noreturn keyword
+
+This shows up in the headers in FreeBSD's stdlib.  Now I didn't add
+anything to regress.h because I think that'd introduce an effective
+hard dependency on a C11-capable compiler, unless we used #ifdef
+trickery.  But the problem with #ifdef is that the -expected.gir isn't
+conditional.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=724851
+---
+ giscanner/scannerlexer.l | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/giscanner/scannerlexer.l b/giscanner/scannerlexer.l
+index d6903d4..941154d 100644
+--- a/giscanner/scannerlexer.l
++++ b/giscanner/scannerlexer.l
+@@ -163,6 +163,7 @@ stringtext				([^\\\"])|(\\.)
+ "__inline__"                            { return INLINE; }
+ "__inline"				{ return INLINE; }
+ "__nonnull" 			        { if (!parse_ignored_macro()) REJECT; }
++"_Noreturn" 			        { /* Ignore */ }
+ "__signed__"				{ return SIGNED; }
+ "__restrict"				{ return RESTRICT; }
+ "__restrict__"				{ return RESTRICT; }
+-- 
+1.8.3.1

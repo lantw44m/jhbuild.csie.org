@@ -1,0 +1,32 @@
+From 2691ccbd1de4b3d45803a35f5db46b26b8263a0f Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Mon, 5 May 2014 23:21:18 +0800
+Subject: [PATCH] 3.14: gnome-shell only use libgsystem on linux
+
+---
+ modulesets/gnome-suites-core-3.14.modules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modulesets/gnome-suites-core-3.14.modules b/modulesets/gnome-suites-core-3.14.modules
+index 9b49cd7..a0af095 100644
+--- a/modulesets/gnome-suites-core-3.14.modules
++++ b/modulesets/gnome-suites-core-3.14.modules
+@@ -288,7 +288,6 @@
+       <dep package="gtk+"/>
+       <dep package="intltool"/>
+       <dep package="libcanberra"/>
+-      <dep package="libgsystem"/>
+       <dep package="libgweather"/>
+       <dep package="libnotify"/>
+       <dep package="librsvg"/>
+@@ -299,6 +298,7 @@
+       <dep package="ibus"/>
+       <dep package="cups"/>
+       <if condition-set="linux">
++        <dep package="libgsystem"/>
+         <dep package="libwacom"/>
+         <dep package="xorg-wacom"/>
+         <dep package="gudev"/>
+-- 
+1.9.2
+

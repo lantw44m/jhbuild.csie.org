@@ -1,0 +1,24 @@
+diff --git a/jhbuild/frontends/tinderbox.py b/jhbuild/frontends/tinderbox.py
+index c99eedc..2481d1f 100644
+--- a/jhbuild/frontends/tinderbox.py
++++ b/jhbuild/frontends/tinderbox.py
+@@ -159,9 +159,17 @@ def get_distro():
+         if os.path.exists(filename):
+             return open(filename, 'r').readline().strip()
+ 
+-    osx = commands.getoutput('sw_vers -productVersion')
+-    if osx:
++    try:
++        osx = cmds.get_output(['sw_vers', '-productVersion']).decode(_encoding).strip()
+         return 'Mac OS X ' + osx;
++    except (CommandError, IOError):
++        pass
++
++    try:
++        freebsd = cmds.get_output(['freebsd-version']).decode(_encoding).strip()
++        return 'FreeBSD ' + freebsd;
++    except (CommandError, IOError):
++        pass
+ 
+     # else:
+     return None

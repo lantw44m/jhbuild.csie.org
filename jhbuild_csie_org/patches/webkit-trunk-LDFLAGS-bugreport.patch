@@ -1,0 +1,92 @@
+Index: Source/WebKit2/ChangeLog
+===================================================================
+--- Source/WebKit2/ChangeLog	(revision 174639)
++++ Source/WebKit2/ChangeLog	(working copy)
+@@ -1,3 +1,25 @@
++2014-10-12  Ting-Wei Lan  <lantw44@gmail.com>
++
++        [GTK] LDFLAGS is ignored when running g-ir-scanner
++        https://bugs.webkit.org/show_bug.cgi?id=136018
++
++        Reviewed by NOBODY (OOPS!).
++
++        GTK+ requires libintl on FreeBSD because there is no gettext
++        implementation in FreeBSD libc. In order to link to libintl, which is
++        not located in the default search path of the linker, we need to add
++        the required path via the linker command line. However, LDFLAGS is
++        ignored when running g-ir-scanner starting from r167873, so we have
++        to manually pick required flags from CMAKE_SHARED_LINKER_FLAGS and
++        put them in correct order to prevent g-ir-scanner from linking to
++        the installed version of libraries.
++
++        This patch also modify LD_LIBRARY_PATH to make sure the dynamic linker
++        find the correct version of libraries when running the temporary
++        executable to generate the .gir file.
++
++        * PlatformGTK.cmake:
++
+ 2014-10-12  Sergio Villar Senin  <svillar@igalia.com>
+ 
+         [SOUP] [WK2] WebProcess and NetworkProcess initialization clears cache contents
+Index: Source/WebKit2/PlatformGTK.cmake
+===================================================================
+--- Source/WebKit2/PlatformGTK.cmake	(revision 174638)
++++ Source/WebKit2/PlatformGTK.cmake	(working copy)
+@@ -718,11 +718,33 @@ add_library(webkit2gtkinjectedbundle MOD
+ add_dependencies(webkit2gtkinjectedbundle GObjectDOMBindings)
+ add_webkit2_prefix_header(webkit2gtkinjectedbundle)
+ 
++# Add required -L flags from ${CMAKE_SHARED_LINKER_FLAGS} for g-ir-scanner       
++separate_arguments(INTROSPECTION_ADDITIONAL_LINKER_FLAGS                         
++    UNIX_COMMAND ${CMAKE_SHARED_LINKER_FLAGS})                                   
++foreach (linker_flag ${INTROSPECTION_ADDITIONAL_LINKER_FLAGS})                   
++    string(REGEX MATCH "-L[^ ]*" linker_flag_matched "${linker_flag}")           
++    string(COMPARE EQUAL "${linker_flag_matched}" "" linker_flag_not_allowed)    
++    if (linker_flag_not_allowed)                                                 
++        list(REMOVE_ITEM INTROSPECTION_ADDITIONAL_LINKER_FLAGS "${linker_flag}") 
++    endif ()                                                                     
++endforeach (linker_flag)                                                         
++                                                                                 
++# Add ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} to LD_LIBRARY_PATH                       
++string(COMPARE EQUAL "$ENV{LD_LIBRARY_PATH}" "" ld_library_path_not_exist)       
++if (ld_library_path_does_not_exist)                                              
++    string(CONCAT INTROSPECTION_ADDITIONAL_LIBRARY_PATH                          
++        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")                                     
++else ()                                                                          
++    string(CONCAT INTROSPECTION_ADDITIONAL_LIBRARY_PATH                          
++        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" ":" "$ENV{LD_LIBRARY_PATH}")         
++endif ()                                                                         
++
+ add_custom_command(
+     OUTPUT ${CMAKE_BINARY_DIR}/WebKit2-${WEBKITGTK_API_VERSION}.gir
+     DEPENDS WebKit2
+     DEPENDS ${CMAKE_BINARY_DIR}/JavaScriptCore-${WEBKITGTK_API_VERSION}.gir
+     COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=-Wno-deprecated-declarations LDFLAGS=
++        LD_LIBRARY_PATH="${INTROSPECTION_ADDITIONAL_LIBRARY_PATH}"
+         ${INTROSPECTION_SCANNER}
+         --quiet
+         --warn-all
+@@ -737,6 +759,7 @@ add_custom_command(
+         --library=webkit2gtk-${WEBKITGTK_API_VERSION}
+         --library=javascriptcoregtk-${WEBKITGTK_API_VERSION}
+         -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
++        ${INTROSPECTION_ADDITIONAL_LINKER_FLAGS}
+         --no-libtool
+         --pkg=gobject-2.0
+         --pkg=gtk+-3.0
+@@ -761,6 +784,7 @@ add_custom_command(
+     DEPENDS ${CMAKE_BINARY_DIR}/JavaScriptCore-${WEBKITGTK_API_VERSION}.gir
+     DEPENDS ${CMAKE_BINARY_DIR}/WebKit2-${WEBKITGTK_API_VERSION}.gir
+     COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=-Wno-deprecated-declarations LDFLAGS=
++        LD_LIBRARY_PATH="${INTROSPECTION_ADDITIONAL_LIBRARY_PATH}"
+         ${INTROSPECTION_SCANNER}
+         --quiet
+         --warn-all
+@@ -775,6 +799,7 @@ add_custom_command(
+         --library=webkit2gtk-${WEBKITGTK_API_VERSION}
+         --library=javascriptcoregtk-${WEBKITGTK_API_VERSION}
+         -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
++        ${INTROSPECTION_ADDITIONAL_LINKER_FLAGS}
+         --no-libtool
+         --pkg=gobject-2.0
+         --pkg=gtk+-3.0

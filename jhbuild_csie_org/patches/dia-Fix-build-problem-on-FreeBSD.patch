@@ -1,0 +1,27 @@
+From 32c6f2b22cdf462c9c66a325b8ab762186fdde3c Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Sun, 16 Mar 2014 23:16:24 +0800
+Subject: [PATCH] Fix build problem on FreeBSD
+
+Define _BSD_SOURCE does not make fchmod() available on FreeBSD. Change
+_POSIX_C_SOURCE to 200809L so we can build it on FreeBSD.
+---
+ app/load_save.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/load_save.c b/app/load_save.c
+index f67e240..64c59af 100644
+--- a/app/load_save.c
++++ b/app/load_save.c
+@@ -18,7 +18,7 @@
+ #include <config.h>
+ 
+ /* so we get fdopen declared even when compiling with -ansi */
+-#define _POSIX_C_SOURCE 2
++#define _POSIX_C_SOURCE 200809L
+ #define _BSD_SOURCE 1 /* to get the prototype for fchmod() */
+ #include <sys/stat.h>
+ #ifdef HAVE_UNISTD_H
+-- 
+1.9.0
+

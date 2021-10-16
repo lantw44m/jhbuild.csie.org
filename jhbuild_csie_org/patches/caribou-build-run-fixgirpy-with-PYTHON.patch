@@ -1,0 +1,25 @@
+From e32f402e6c096f983f8e02388a39beef8d6c708c Mon Sep 17 00:00:00 2001
+From: Daiki Ueno <ueno@unixuser.org>
+Date: Fri, 17 Jan 2014 12:07:47 +0900
+Subject: [PATCH] build: run fix_gir.py with $(PYTHON)
+
+https://bugzilla.gnome.org/show_bug.cgi?id=722355
+---
+ libcaribou/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libcaribou/Makefile.am b/libcaribou/Makefile.am
+index d7aa36a..62a0a22 100644
+--- a/libcaribou/Makefile.am
++++ b/libcaribou/Makefile.am
+@@ -63,7 +63,7 @@ typelibdir = $(libdir)/girepository-1.0
+ typelib_DATA = Caribou-1.0.typelib
+ 
+ Caribou-1.0.gir: _Caribou-1.0.gir
+-	$(top_srcdir)/tools/fix_gir.py $< > $@
++	$(AM_V_GEN)$(PYTHON) -B $(top_srcdir)/tools/fix_gir.py $< > $@
+ 
+ Caribou-1.0.typelib: Caribou-1.0.gir
+ 	@INTROSPECTION_COMPILER@ --shared-library=libcaribou.so.0 -o $@ $^
+-- 
+1.8.4.2

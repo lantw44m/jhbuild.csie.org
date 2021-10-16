@@ -1,0 +1,33 @@
+From 727dd2169d73776a7b39aba8a5f33981d3a743db Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Wed, 25 Jun 2014 15:58:40 +0800
+Subject: [PATCH] suites-core-3.14: Update gnome-settings-daemon dependencies
+
+---
+ modulesets/gnome-suites-core-3.14.modules | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/modulesets/gnome-suites-core-3.14.modules b/modulesets/gnome-suites-core-3.14.modules
+index e504452..4eeade1 100644
+--- a/modulesets/gnome-suites-core-3.14.modules
++++ b/modulesets/gnome-suites-core-3.14.modules
+@@ -256,7 +256,7 @@
+ 
+   <autotools id="gnome-settings-daemon">
+     <if condition-unset="linux">
+-      <autogenargs value="--disable-rfkill --disable-gudev"/>
++      <autogenargs value="--disable-rfkill --disable-gudev --disable-network-manager"/>
+     </if>
+     <branch/>
+     <dependencies>
+@@ -283,6 +283,7 @@
+         <dep package="libwacom"/>
+         <dep package="xorg-wacom"/>
+         <dep package="gudev"/>
++        <dep package="NetworkManager"/>
+       </if>
+     </dependencies>
+     <suggests>
+-- 
+2.0.0
+

@@ -1,0 +1,30 @@
+Index: Tools/ChangeLog
+===================================================================
+--- Tools/ChangeLog	(revision 164855)
++++ Tools/ChangeLog	(working copy)
+@@ -1,3 +1,12 @@
++2014-02-27  Ting-Wei Lan  <lantw44@gmail.com>
++
++        [GTK] Quote the CC variable. 
++        https://bugs.webkit.org/show_bug.cgi?id=128727
++
++        Reviewed by NOBODY (OOPS!).
++
++        * gtk/GNUmakefile.am:
++
+ 2014-02-27  Brian Burg  <bburg@apple.com>
+ 
+         Web Inspector: model tests should use a special Test.html inspector page
+Index: Tools/gtk/GNUmakefile.am
+===================================================================
+--- Tools/gtk/GNUmakefile.am	(revision 164855)
++++ Tools/gtk/GNUmakefile.am	(working copy)
+@@ -48,7 +48,7 @@ docs_build_dependencies += \
+ 	gtkdoc-webkitdom.cfg
+ 
+ docs-build.stamp: $(docs_build_dependencies)
+-	CC=$(CC) $(srcdir)/Tools/gtk/generate-gtkdoc
++	CC="$(CC)" $(srcdir)/Tools/gtk/generate-gtkdoc
+ 	@touch docs-build.stamp
+ 
+ clean-local: doc-clean-local

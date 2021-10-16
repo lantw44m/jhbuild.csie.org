@@ -1,0 +1,18 @@
+diff --git a/browser-plugin/totemPlugin.cpp b/browser-plugin/totemPlugin.cpp
+index 337a814..e999863 100644
+--- a/browser-plugin/totemPlugin.cpp
++++ b/browser-plugin/totemPlugin.cpp
+@@ -166,11 +166,11 @@ static const char kPluginLongDescription[] =
+ 
+ static const char kPluginUserAgent[] =
+ #if defined(TOTEM_NARROWSPACE_PLUGIN)
+-  "Quicktime/"TOTEM_NARROWSPACE_VERSION;
++  "Quicktime/" TOTEM_NARROWSPACE_VERSION;
+ #elif defined(TOTEM_GMP_PLUGIN)
+   "Windows-Media-Player/10.00.00.4019";
+ #elif defined(TOTEM_VEGAS_PLUGIN)
+-  "Videos/"VERSION;
++  "Videos/" VERSION;
+ #else
+   "";
+ #endif

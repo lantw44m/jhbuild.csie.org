@@ -1,0 +1,52 @@
+From 829640933545cf3ccaa8978579c7ef858a408f57 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Wed, 29 Oct 2014 21:14:00 +0800
+Subject: [PATCH] core-deps-3.14/3.16: Remove libxkbcommon autogenargs
+
+The --with-xkb-config-root option is not needed because its configure
+script already uses 'pkg-config --variable=xkb_base xkeyboard-config' to
+get the value. We should stop using this option to prevent gnome-shell from
+crashing on systems which does not have xkeyboard-config installed in
+the expected location.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=735988
+---
+ modulesets/gnome-suites-core-deps-3.14.modules | 3 ++-
+ modulesets/gnome-suites-core-deps-3.16.modules | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/modulesets/gnome-suites-core-deps-3.14.modules b/modulesets/gnome-suites-core-deps-3.14.modules
+index 0f65876..8a98cb4 100644
+--- a/modulesets/gnome-suites-core-deps-3.14.modules
++++ b/modulesets/gnome-suites-core-deps-3.14.modules
+@@ -1317,9 +1317,10 @@
+     </dependencies>
+   </autotools>
+ 
+-  <autotools id="libxkbcommon" autogenargs="--with-xkb-config-root=/usr/share/X11/xkb">
++  <autotools id="libxkbcommon">
+     <branch repo="github.com" checkoutdir="libxkbcommon" module="xkbcommon/libxkbcommon.git"/>
+     <dependencies>
++      <dep package="xkeyboard-config"/>
+       <dep package="xorg-macros"/>
+       <dep package="xorg-xproto"/>
+       <dep package="xorg-kbproto"/>
+diff --git a/modulesets/gnome-suites-core-deps-3.16.modules b/modulesets/gnome-suites-core-deps-3.16.modules
+index 44d27eb..6f878dc 100644
+--- a/modulesets/gnome-suites-core-deps-3.16.modules
++++ b/modulesets/gnome-suites-core-deps-3.16.modules
+@@ -1226,9 +1226,10 @@
+     </dependencies>
+   </autotools>
+ 
+-  <autotools id="libxkbcommon" autogenargs="--with-xkb-config-root=/usr/share/X11/xkb">
++  <autotools id="libxkbcommon">
+     <branch repo="github.com" checkoutdir="libxkbcommon" module="xkbcommon/libxkbcommon.git"/>
+     <dependencies>
++      <dep package="xkeyboard-config"/>
+       <dep package="xorg-macros"/>
+       <dep package="xorg-xproto"/>
+       <dep package="xorg-kbproto"/>
+-- 
+1.9.3
+

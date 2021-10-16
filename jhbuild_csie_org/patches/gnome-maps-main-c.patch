@@ -1,0 +1,16 @@
+diff --git a/src/main.c b/src/main.c
+index 3be6d53..a54f784 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -23,9 +23,10 @@
+ 
+ #include <girepository.h>
+ #include <gjs/gjs.h>
++#include <libintl.h>
+ 
+ int
+-main (int argc, char *argv)
++main (int argc, char *argv[])
+ {
+   const char *search_path[] = { "resource:///org/gnome/maps", NULL };
+   GError *error = NULL;

@@ -1,0 +1,38 @@
+From 02feaf8da0b40316ea4b4c9e1d5f8a663be9288b Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Thu, 13 Feb 2014 22:38:23 +0800
+Subject: [PATCH] Workaround missing .pc files on FreeBSD
+
+---
+ CMakeLists.txt | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ac1032a..1aa9648 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -153,7 +153,11 @@ IF (WIN32 AND NOT MINGW AND NOT SHA1_TYPE STREQUAL "builtin")
+ 	FILE(GLOB SRC_SHA1 src/hash/hash_win32.c)
+ ELSEIF (OPENSSL_FOUND AND NOT SHA1_TYPE STREQUAL "builtin")
+ 	ADD_DEFINITIONS(-DOPENSSL_SHA1)
+-	SET(LIBGIT2_PC_REQUIRES "${LIBGIT2_PC_REQUIRES} openssl")
++	IF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++		SET(LIBGIT2_PC_LIBS "${LIBGIT2_PC_LIBS} -lssl")
++	ELSE()
++		SET(LIBGIT2_PC_REQUIRES "${LIBGIT2_PC_REQUIRES} openssl")
++	ENDIF ()
+ ELSE()
+ 	FILE(GLOB SRC_SHA1 src/hash/hash_generic.c)
+ ENDIF()
+@@ -176,7 +180,7 @@ FIND_PACKAGE(ZLIB QUIET)
+ IF (ZLIB_FOUND)
+ 	INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+ 	LINK_LIBRARIES(${ZLIB_LIBRARIES})
+-	IF(APPLE)
++	IF(APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+ 		SET(LIBGIT2_PC_LIBS "${LIBGIT2_PC_LIBS} -lz")
+ 	ELSE()
+ 		SET(LIBGIT2_PC_REQUIRES "${LIBGIT2_PC_REQUIRES} zlib")
+-- 
+1.8.5.4
+

@@ -1,0 +1,36 @@
+diff --git a/daemon/Makefile.am b/daemon/Makefile.am
+index eb9f56d..cfb4615 100644
+--- a/daemon/Makefile.am
++++ b/daemon/Makefile.am
+@@ -297,6 +297,7 @@ gdm_session_worker_LDADD = 			\
+ 	$(SYSTEMD_LIBS) 			\
+ 	$(JOURNALD_LIBS) 			\
+ 	$(LIBSELINUX_LIBS) 			\
++	$(EXTRA_DAEMON_LIBS)			\
+ 	$(NULL)
+ 
+ sbin_PROGRAMS = 			\
+diff --git a/daemon/gdm-session.h b/daemon/gdm-session.h
+index 8e6e4e3..9b17dc1 100644
+--- a/daemon/gdm-session.h
++++ b/daemon/gdm-session.h
+@@ -22,6 +22,7 @@
+ #define __GDM_SESSION_H
+ 
+ #include <glib-object.h>
++#include <sys/types.h>
+ 
+ G_BEGIN_DECLS
+ 
+diff --git a/daemon/gdm-xdmcp-display-factory.c b/daemon/gdm-xdmcp-display-factory.c
+index b392879..69d18dc 100644
+--- a/daemon/gdm-xdmcp-display-factory.c
++++ b/daemon/gdm-xdmcp-display-factory.c
+@@ -35,6 +35,7 @@
+ #include <netdb.h>
+ #include <arpa/inet.h>
+ #include <net/if.h>
++#include <netinet/in.h>
+ #ifdef HAVE_SYS_SOCKIO_H
+ #include <sys/sockio.h>
+ #endif

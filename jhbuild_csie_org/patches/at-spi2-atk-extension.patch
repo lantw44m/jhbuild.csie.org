@@ -1,0 +1,29 @@
+diff --git a/atk-adaptor/adaptors/collection-adaptor.c b/atk-adaptor/adaptors/collection-adaptor.c
+index 11c73d8..c6bb01a 100644
+--- a/atk-adaptor/adaptors/collection-adaptor.c
++++ b/atk-adaptor/adaptors/collection-adaptor.c
+@@ -1115,7 +1115,7 @@ append_accessible_properties (DBusMessageIter *iter, AtkObject *obj,
+         continue;
+       for (;prop->name; prop++)
+       {
+-        const char *p = key + strlen (key);
++        const char *p = (const char*)key + strlen (key);
+         gchar *property_name;
+         while (p[-1] != '.')
+           p--;
+diff --git a/droute/droute.c b/droute/droute.c
+index 838aacd..2446d16 100644
+--- a/droute/droute.c
++++ b/droute/droute.c
+@@ -33,9 +33,9 @@
+ #define oom() g_error ("D-Bus out of memory, this message will fail anyway")
+ 
+ #if defined DROUTE_DEBUG
+-    #define _DROUTE_DEBUG(format, args...) g_print (format , ## args)
++    #define _DROUTE_DEBUG(format, ...) g_print (format , __VA_ARGS__)
+ #else
+-    #define _DROUTE_DEBUG(format, args...)
++    #define _DROUTE_DEBUG(format, ...)
+ #endif
+ 
+ struct _DRouteContext

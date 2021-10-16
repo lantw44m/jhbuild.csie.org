@@ -1,0 +1,41 @@
+diff -Naur webkitgtk-2.1.3.orig/Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h webkitgtk-2.1.3/Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h
+--- webkitgtk-2.1.3.orig/Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h	2013-06-26 16:42:11.000000000 +0800
++++ webkitgtk-2.1.3/Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h	2013-08-10 03:42:30.000000000 +0800
+@@ -177,6 +177,12 @@
+ #include <sys/stat.h>
+ #endif  // !_WIN32_WCE
+ 
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/uio.h>
++#include <unistd.h>
++#include <fcntl.h>
++
+ #include <wtf/Platform.h>
+ #include <wtf/ExportMacros.h>
+ #include <runtime/JSExportMacros.h>
+diff -Naur webkitgtk-2.1.3.orig/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp webkitgtk-2.1.3/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp
+--- webkitgtk-2.1.3.orig/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	2013-06-26 16:42:31.000000000 +0800
++++ webkitgtk-2.1.3/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	2013-08-10 03:42:37.000000000 +0800
+@@ -42,6 +42,8 @@
+ #include <Ecore_X.h>
+ #endif
+ 
++#include <libgen.h>
++
+ using namespace WebCore;
+ 
+ namespace WebKit {
+diff -Naur webkitgtk-2.1.3.orig/Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp webkitgtk-2.1.3/Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp
+--- webkitgtk-2.1.3.orig/Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp	2013-06-26 16:42:33.000000000 +0800
++++ webkitgtk-2.1.3/Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp	2013-08-10 03:42:35.000000000 +0800
+@@ -47,6 +47,9 @@
+ #include <sys/socket.h>
+ #endif
+ 
++#include <sys/types.h>
++#include <sys/socket.h>
++
+ #ifdef SOCK_SEQPACKET
+ #define SOCKET_TYPE SOCK_SEQPACKET
+ #else

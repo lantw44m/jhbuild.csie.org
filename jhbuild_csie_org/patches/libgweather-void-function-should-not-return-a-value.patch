@@ -1,0 +1,25 @@
+From e82b89fdb884435c8edd89504d4cb368dbdbabf6 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Thu, 3 Apr 2014 17:37:07 +0800
+Subject: [PATCH] Fix "void function should not return a value" error for clang
+
+---
+ libgweather/gweather-location.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgweather/gweather-location.c b/libgweather/gweather-location.c
+index 4efb778..6061269 100644
+--- a/libgweather/gweather-location.c
++++ b/libgweather/gweather-location.c
+@@ -764,7 +764,7 @@ gweather_location_detect_nearest_city (GWeatherLocation    *loc,
+ {
+     ArgData *data;
+ 
+-    g_return_val_if_fail (loc == NULL || loc->level < GWEATHER_LOCATION_CITY, NULL);
++    g_return_if_fail (loc == NULL || loc->level < GWEATHER_LOCATION_CITY);
+ 
+     if (loc == NULL)
+         loc = gweather_location_get_world ();
+-- 
+1.9.0
+

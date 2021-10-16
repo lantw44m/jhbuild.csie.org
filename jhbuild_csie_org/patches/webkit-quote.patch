@@ -1,0 +1,22 @@
+Index: Tools/gtk/GNUmakefile.am
+===================================================================
+--- Tools/gtk/GNUmakefile.am	(revision 164011)
++++ Tools/gtk/GNUmakefile.am	(working copy)
+@@ -45,7 +45,7 @@
+ 	$(top_builddir)/DerivedSources/webkitdom/docs/webkitdomgtk-sections.txt
+ 
+ docs-build.stamp: $(docs_build_stamp_list)
+-	CC=$(CC) $(srcdir)/Tools/gtk/generate-gtkdoc
++	CC="$(CC)" $(srcdir)/Tools/gtk/generate-gtkdoc
+ 	@touch docs-build.stamp
+ 
+ clean-local: doc-clean-local
+@@ -128,7 +128,7 @@
+ 	  fi; \
+ 	fi
+ if ENABLE_GTK_DOC
+-	@$(AM_V_GEN) PKG_CONFIG=$(PKG_CONFIG) $(PYTHON) $(srcdir)/Tools/gtk/generate-gtkdoc --rebase --virtual-root=$${DESTDIR}
++	@$(AM_V_GEN) PKG_CONFIG="$(PKG_CONFIG)" $(PYTHON) $(srcdir)/Tools/gtk/generate-gtkdoc --rebase --virtual-root=$${DESTDIR}
+ endif
+ 
+ uninstall-local:

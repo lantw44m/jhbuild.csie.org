@@ -1,0 +1,25 @@
+From bb8f531da7348a927f081bc58cc15fce96003dc7 Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Sun, 6 Jul 2014 12:20:48 +0800
+Subject: [PATCH] Fix "void function should not return a value" error for clang
+
+---
+ src/gs-shell.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gs-shell.c b/src/gs-shell.c
+index ec45068..4395735 100644
+--- a/src/gs-shell.c
++++ b/src/gs-shell.c
+@@ -465,7 +465,7 @@ gs_shell_setup (GsShell *shell, GsPluginLoader *plugin_loader, GCancellable *can
+ 	GsShellPrivate *priv = shell->priv;
+ 	GtkWidget *widget;
+ 
+-	g_return_val_if_fail (GS_IS_SHELL (shell), NULL);
++	g_return_if_fail (GS_IS_SHELL (shell));
+ 
+ 	priv->plugin_loader = g_object_ref (plugin_loader);
+ 	priv->cancellable = g_object_ref (cancellable);
+-- 
+2.0.0
+

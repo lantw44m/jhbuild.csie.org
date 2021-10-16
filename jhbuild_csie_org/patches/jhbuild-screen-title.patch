@@ -1,0 +1,25 @@
+diff --git a/autogen.sh b/autogen.sh
+index 53ee157..e52b7c8 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -160,6 +160,7 @@ configure_with_autotools()
+   REQUIRED_AUTOMAKE_VERSION=1.8 \
+   REQUIRED_INTLTOOL_VERSION=0.35.0 \
+   REQUIRED_PKG_CONFIG_VERSION=0.16.0 \
++  srcdir="$(dirname $0)" \
+   gnome-autogen.sh $@
+ }
+ 
+diff --git a/jhbuild/frontends/terminal.py b/jhbuild/frontends/terminal.py
+index 201cfba..dd91533 100644
+--- a/jhbuild/frontends/terminal.py
++++ b/jhbuild/frontends/terminal.py
+@@ -31,7 +31,7 @@ from jhbuild.utils import notify
+ from jhbuild.errors import CommandError, FatalError
+ 
+ term = os.environ.get('TERM', '')
+-is_xterm = term.find('xterm') >= 0 or term == 'rxvt'
++is_xterm = term.find('xterm') >= 0 or (term == 'rxvt' or term == 'screen')
+ del term
+ 
+ try: t_bold = cmds.get_output(['tput', 'bold'])

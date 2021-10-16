@@ -1,0 +1,32 @@
+From 7f674926a11e37e563d204fa7d22933a814b6d5e Mon Sep 17 00:00:00 2001
+From: Ryan Lortie <desrt@desrt.ca>
+Date: Tue, 11 Feb 2014 08:51:51 -0500
+Subject: [PATCH 1/4] Enable DFG_JIT on FreeBSD
+
+I've tried a build of WebKit on FreeBSD and it seems to be working
+nicely with DFG_JIT enabled.
+
+This also works around the issues caused by ENABLED(JIT) but not
+ENABLED(DFG_JIT), but that issue should still be fixed separately.
+---
+ Source/WTF/wtf/Platform.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Source/WTF/wtf/Platform.h b/Source/WTF/wtf/Platform.h
+index aeec24f..ed84e7b 100644
+--- a/Source/WTF/wtf/Platform.h
++++ b/Source/WTF/wtf/Platform.h
+@@ -708,8 +708,8 @@
+ #endif
+ 
+ #if !defined(ENABLE_DFG_JIT) && ENABLE(JIT) && !COMPILER(MSVC)
+-/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac and GNU/Linux. */
+-#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX))
++/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac, GNU/Linux and FreeBSD. */
++#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX) || OS(FREEBSD))
+ #define ENABLE_DFG_JIT 1
+ #endif
+ /* Enable the DFG JIT on ARMv7.  Only tested on iOS and Qt/GTK+ Linux. */
+-- 
+1.8.5.2
+

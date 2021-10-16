@@ -1,0 +1,39 @@
+Index: deskutils/gnome-documents/files/patch-src_Makefile-lib.am
+===================================================================
+--- deskutils/gnome-documents/files/patch-src_Makefile-lib.am	(revision 0)
++++ deskutils/gnome-documents/files/patch-src_Makefile-lib.am	(working copy)
+@@ -0,0 +1,21 @@
++--- src/Makefile.in.orig	2014-07-11 05:42:33.000000000 +0000
+++++ src/Makefile.in	2014-07-11 05:49:32.000000000 +0000
++@@ -480,13 +480,16 @@
++     $(gdprivate_source_h) \
++     $(gdprivate_source_c)
++ 
+++INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/libgd
+++
++ GdPrivate_1_0_gir_NAMESPACE = GdPrivate
++ GdPrivate_1_0_gir_VERSION = 1.0
++-GdPrivate_1_0_gir_LIBS = libgdprivate-1.0.la
+++GdPrivate_1_0_gir_LIBS = libgdprivate-1.0.la $(top_builddir)/libgd/libgd.la
++ GdPrivate_1_0_gir_CFLAGS = $(AM_CPPFLAGS) $(gdprivate_cflags)
++-GdPrivate_1_0_gir_SCANNERFLAGS = --warn-all --symbol-prefix=gd --identifier-prefix=Gd
+++GdPrivate_1_0_gir_SCANNERFLAGS = --warn-all --symbol-prefix=gd --identifier-prefix=Gd --add-include-path=$(top_builddir)/libgd
++ GdPrivate_1_0_gir_INCLUDES = \
++    GData-0.0 \
+++   Gd-1.0 \
++    Goa-1.0 \
++    Gtk-3.0 \
++    EvinceDocument-3.0 \
+Index: graphics/cogl/Makefile
+===================================================================
+--- graphics/cogl/Makefile	(revision 19773)
++++ graphics/cogl/Makefile	(working copy)
+@@ -19,7 +19,7 @@
+ GNU_CONFIGURE=	yes
+ USE_GNOME=	gdkpixbuf2 gnomeprefix atk pango introspection:build
+ USE_GL=		gl
+-USE_XORG=	x11 xfixes xdamage xcomposite xi
++USE_XORG=	x11 xfixes xdamage xcomposite xi xrandr
+ USE_LDCONFIG=	yes
+ CONFIGURE_ARGS=	--with-x
+ CPPFLAGS+=	-I${LOCALBASE}/include

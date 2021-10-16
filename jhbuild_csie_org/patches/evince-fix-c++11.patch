@@ -1,0 +1,25 @@
+From 07d4f44b29821657c4d899b5ea57baa62e09715b Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Wed, 27 Aug 2014 01:25:36 +0800
+Subject: [PATCH] Fix build when using C++11 mode
+
+---
+ backend/pdf/ev-poppler.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/backend/pdf/ev-poppler.cc b/backend/pdf/ev-poppler.cc
+index 785005e..631eab4 100644
+--- a/backend/pdf/ev-poppler.cc
++++ b/backend/pdf/ev-poppler.cc
+@@ -3007,7 +3007,7 @@ annot_set_unique_name (EvAnnotation *annot)
+ {
+ 	gchar *name;
+ 
+-	name = g_strdup_printf ("annot-%"G_GUINT64_FORMAT, g_get_real_time ());
++	name = g_strdup_printf ("annot-%" G_GUINT64_FORMAT, g_get_real_time ());
+ 	ev_annotation_set_name (annot, name);
+ 	g_free (name);
+ }
+-- 
+2.1.0
+

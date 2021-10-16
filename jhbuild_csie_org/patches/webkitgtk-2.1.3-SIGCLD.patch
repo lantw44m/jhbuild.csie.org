@@ -1,0 +1,29 @@
+Index: Source/WebKit2/UIProcess/Plugins/unix/PluginProcessProxyUnix.cpp
+===================================================================
+--- Source/WebKit2/UIProcess/Plugins/unix/PluginProcessProxyUnix.cpp	(revision 161659)
++++ Source/WebKit2/UIProcess/Plugins/unix/PluginProcessProxyUnix.cpp	(working copy)
+@@ -40,6 +40,8 @@
+ #include <wtf/gobject/GOwnPtr.h>
+ #endif
+ 
++#include <sys/wait.h>
++
+ using namespace WebCore;
+ 
+ namespace WebKit {
+@@ -79,6 +81,7 @@
+     // able to return the status.
+     // As a consequence, we make sure that the disposition is set to
+     // SIG_DFL before calling g_spawn_sync().
++#if defined(SIGCLD)
+     struct sigaction action;
+     sigaction(SIGCLD, 0, &action);
+     if (action.sa_handler == SIG_IGN) {
+@@ -85,6 +88,7 @@
+         action.sa_handler = SIG_DFL;
+         sigaction(SIGCLD, &action, 0);
+     }
++#endif
+ 
+     if (!g_spawn_sync(0, argv, 0, G_SPAWN_STDERR_TO_DEV_NULL, 0, 0, &stdOut.outPtr(), 0, &status, 0))
+         return false;

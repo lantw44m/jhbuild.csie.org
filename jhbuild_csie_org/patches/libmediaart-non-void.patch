@@ -1,0 +1,13 @@
+diff --git a/libmediaart/cache.c b/libmediaart/cache.c
+index b88f92c..774e2cf 100644
+--- a/libmediaart/cache.c
++++ b/libmediaart/cache.c
+@@ -410,7 +410,7 @@ media_art_remove (const gchar *artist,
+ 	gchar *target = NULL;
+ 	gchar *album_path = NULL;
+ 
+-	g_return_if_fail (artist != NULL && artist[0] != '\0');
++	g_return_val_if_fail (artist != NULL && artist[0] != '\0', FALSE);
+ 
+ 	dirname = g_build_filename (g_get_user_cache_dir (), "media-art", NULL);
+ 

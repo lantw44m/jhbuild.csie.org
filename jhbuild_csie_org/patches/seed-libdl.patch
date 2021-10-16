@@ -1,0 +1,29 @@
+diff --git a/configure.ac b/configure.ac
+index 67a91d7..2313c09 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -271,6 +271,11 @@ AC_ARG_ENABLE(ffi-module,
+ AM_CONDITIONAL(BUILD_FFI_MODULE, test "x$want_ffi_module" = "xyes")
+ AC_SUBST(BUILD_FFI_MODULE)
+ 
++dnl ==== libdl ====
++AC_CHECK_LIB([c], [dlsym], [LIBDL=""],
++	[AC_CHECK_LIB([dl], [dlsym], [LIBDL="-ldl"])])
++AC_SUBST(LIBDL)
++
+ dnl ==== libxml ====
+ AC_ARG_ENABLE(libxml-module,
+ 			  AC_HELP_STRING([--enable-libxml-module],
+diff --git a/libseed/Makefile.am b/libseed/Makefile.am
+index 5ff186b..0936483 100644
+--- a/libseed/Makefile.am
++++ b/libseed/Makefile.am
+@@ -44,7 +44,7 @@ libseed@SEED_GTK_VERSION@_la_LIBADD = \
+ 	$(SEED_PROFILE_LIBS) \
+ 	$(SEED_OSX_LIBS) \
+ 	$(GIO_LIBS) \
+-	$(FFI_LIBS) -ldl
++	$(FFI_LIBS) $(LIBDL)
+ 
+ seedheaders_HEADERS = seed.h seed-debug.h seed-module.h
+ 

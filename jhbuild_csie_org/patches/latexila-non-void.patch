@@ -1,0 +1,26 @@
+From 047ad3cc5cde2ceb10745e7c950c8d11bf8a133d Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw@src.gnome.org>
+Date: Fri, 17 Oct 2014 14:43:39 +0800
+Subject: [PATCH] Fix "Non-void function should return a value"
+
+https://bugzilla.gnome.org/show_bug.cgi?id=738660
+---
+ src/liblatexila/latexila-build-job.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/liblatexila/latexila-build-job.c b/src/liblatexila/latexila-build-job.c
+index 0a9e314..3810c2a 100644
+--- a/src/liblatexila/latexila-build-job.c
++++ b/src/liblatexila/latexila-build-job.c
+@@ -673,7 +673,7 @@ latexila_build_job_run_finish (LatexilaBuildJob *build_job,
+   GCancellable *cancellable;
+   gboolean succeed;
+ 
+-  g_return_if_fail (g_task_is_valid (result, build_job));
++  g_return_val_if_fail (g_task_is_valid (result, build_job), FALSE);
+ 
+   task = G_TASK (result);
+   data = g_task_get_task_data (task);
+-- 
+2.1.2
+

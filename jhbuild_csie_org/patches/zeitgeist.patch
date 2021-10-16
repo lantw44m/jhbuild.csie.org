@@ -1,0 +1,36 @@
+diff --git a/libzeitgeist/Makefile.am b/libzeitgeist/Makefile.am
+index f44e950..2692a54 100644
+--- a/libzeitgeist/Makefile.am
++++ b/libzeitgeist/Makefile.am
+@@ -31,6 +31,8 @@ AM_VALAFLAGS = \
+ 	--pkg gio-2.0 \
+ 	--pkg gio-unix-2.0 \
+ 	--pkg sqlite3 \
++	--pkg posix \
++	--pkg linux \
+ 	$(top_srcdir)/config.vapi \
+ 	-C \
+ 	$(NULL)
+diff --git a/libzeitgeist/log.vala b/libzeitgeist/log.vala
+index 02b16ca..65e7367 100644
+--- a/libzeitgeist/log.vala
++++ b/libzeitgeist/log.vala
+@@ -58,9 +58,6 @@ namespace Zeitgeist
+  */
+ public class Log : QueuedProxyWrapper
+ {
+-    [CCode (cheader_filename = "sys/sysinfo.h", cname = "get_nprocs_conf")]
+-    extern static int get_nprocs_conf ();
+-
+     class DbWorker
+     {
+         private unowned ThreadFunc<void*> func;
+@@ -141,7 +138,7 @@ public class Log : QueuedProxyWrapper
+         try {
+             threads = new ThreadPool<DbWorker>.with_owned_data ((worker) => {
+                 worker.run ();
+-            }, get_nprocs_conf (), true);
++            }, (int) Posix.sysconf (Linux._SC_NPROCESSORS_CONF), true);
+         } catch (ThreadError err) {
+             warning ("%s", err.message);
+             threads = null;

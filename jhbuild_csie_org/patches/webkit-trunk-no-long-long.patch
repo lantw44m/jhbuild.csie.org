@@ -1,0 +1,61 @@
+Index: Source/WebKit2/Platform/IPC/ArgumentDecoder.cpp
+===================================================================
+--- Source/WebKit2/Platform/IPC/ArgumentDecoder.cpp	(revision 173792)
++++ Source/WebKit2/Platform/IPC/ArgumentDecoder.cpp	(working copy)
+@@ -196,6 +196,15 @@
+     return true;
+ }
+ 
++bool ArgumentDecoder::decode(long long& result)
++{
++    if (!alignBufferPosition(sizeof(result), sizeof(result)))
++        return false;
++
++    decodeValueFromBuffer(result, m_bufferPos);
++    return true;
++}
++
+ bool ArgumentDecoder::decode(float& result)
+ {
+     if (!alignBufferPosition(sizeof(result), sizeof(result)))
+Index: Source/WebKit2/Platform/IPC/ArgumentDecoder.h
+===================================================================
+--- Source/WebKit2/Platform/IPC/ArgumentDecoder.h	(revision 173792)
++++ Source/WebKit2/Platform/IPC/ArgumentDecoder.h	(working copy)
+@@ -57,6 +57,7 @@
+     bool decode(uint64_t&);
+     bool decode(int32_t&);
+     bool decode(int64_t&);
++    bool decode(long long&);
+     bool decode(float&);
+     bool decode(double&);
+ 
+Index: Source/WebKit2/Platform/IPC/ArgumentEncoder.cpp
+===================================================================
+--- Source/WebKit2/Platform/IPC/ArgumentEncoder.cpp	(revision 173792)
++++ Source/WebKit2/Platform/IPC/ArgumentEncoder.cpp	(working copy)
+@@ -176,6 +176,12 @@
+     copyValueToBuffer(n, buffer);
+ }
+ 
++void ArgumentEncoder::encode(long long n)
++{
++    uint8_t* buffer = grow(sizeof(n), sizeof(n));
++    copyValueToBuffer(n, buffer);
++}
++
+ void ArgumentEncoder::encode(float n)
+ {
+     uint8_t* buffer = grow(sizeof(n), sizeof(n));
+Index: Source/WebKit2/Platform/IPC/ArgumentEncoder.h
+===================================================================
+--- Source/WebKit2/Platform/IPC/ArgumentEncoder.h	(revision 173792)
++++ Source/WebKit2/Platform/IPC/ArgumentEncoder.h	(working copy)
+@@ -77,6 +77,7 @@
+     void encode(uint64_t);
+     void encode(int32_t);
+     void encode(int64_t);
++    void encode(long long);
+     void encode(float);
+     void encode(double);
+ 

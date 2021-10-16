@@ -1,0 +1,71 @@
+Index: Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h
+===================================================================
+--- Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h	(revision 163875)
++++ Source/ThirdParty/gtest/include/gtest/internal/gtest-port.h	(working copy)
+@@ -179,6 +179,12 @@
+ #include <sys/stat.h>
+ #endif  // !_WIN32_WCE
+ 
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/uio.h>
++#include <unistd.h>
++#include <fcntl.h>
++
+ #include <wtf/Platform.h>
+ #include <wtf/ExportMacros.h>
+ #include <runtime/JSExportMacros.h>
+Index: Source/WTF/wtf/Platform.h
+===================================================================
+--- Source/WTF/wtf/Platform.h	(revision 163875)
++++ Source/WTF/wtf/Platform.h	(working copy)
+@@ -712,8 +712,8 @@
+ #endif
+ 
+ #if !defined(ENABLE_DFG_JIT) && ENABLE(JIT) && !COMPILER(MSVC)
+-/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac and GNU/Linux. */
+-#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX))
++/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac, GNU/Linux and FreeBSD. */
++#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX) || OS(FREEBSD))
+ #define ENABLE_DFG_JIT 1
+ #endif
+ /* Enable the DFG JIT on ARMv7.  Only tested on iOS and Qt/GTK+ Linux. */
+Index: Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp
+===================================================================
+--- Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp	(revision 163875)
++++ Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp	(working copy)
+@@ -33,7 +33,6 @@
+ #include "WebKit2Initialize.h"
+ #include <WebCore/SoupNetworkSession.h>
+ #include <WebKit2/NetworkProcess.h>
+-#include <error.h>
+ #include <runtime/InitializeThreading.h>
+ #include <stdlib.h>
+ #include <wtf/MainThread.h>
+Index: Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp
+===================================================================
+--- Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	(revision 163875)
++++ Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	(working copy)
+@@ -44,6 +44,8 @@
+ #include <Ecore_X.h>
+ #endif
+ 
++#include <libgen.h>
++
+ using namespace WebCore;
+ 
+ namespace WebKit {
+Index: Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp
+===================================================================
+--- Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp	(revision 163875)
++++ Source/WebKit2/UIProcess/Launcher/gtk/ProcessLauncherGtk.cpp	(working copy)
+@@ -46,6 +46,9 @@
+ #include <sys/socket.h>
+ #endif
+ 
++#include <sys/types.h>
++#include <sys/socket.h>
++
+ #ifdef SOCK_SEQPACKET
+ #define SOCKET_TYPE SOCK_SEQPACKET
+ #else

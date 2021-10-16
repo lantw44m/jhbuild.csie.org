@@ -1,0 +1,26 @@
+== jhbuild.csie.org
+
+https://jhbuild.csie.org:9043/ was a virtual machine using
+https://wiki.gnome.org/Projects/Jhbuild[JHBuild] tinderbox to test GNOME builds
+on FreeBSD. By running the build every day, it allowed developers to catch and
+fix GNOME build failures very early, reducing the work of FreeBSD ports
+maintainers. It also ran a web server to host build logs it generated and
+configurations, patches, scripts it used. For more information, please see the
+https://wiki.gnome.org/Projects/Jhbuild/FreeBSD[GNOME Wiki page].
+
+The host running this virtual machine became more and more unstable over the
+time. It often crashed and finally become unusable in 2018. Unless there is
+someone going to the server room and fixing it, it is unlikely to come back.
+While the virtual machine has been unreachable from the Internet for years,
+public data it hosted are still available thanks to the mirror site.
+
+== Build Logs
+
+Since build logs are very large (100 GB), it isn't stored in this repository
+directly. Instead, they are compressed as a squashfs image and available for
+download from the GitHub releases page. To verify the download, use the
+`CHECKSUM` file included in this repository.
+
+Note that each release file is limited to 2 GB on GitHub. Files which are larger
+than 2 GB are split into multiple files using the `split` command. You can use
+the `cat` command to reproduce the original file from split files.

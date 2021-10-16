@@ -1,0 +1,449 @@
+# This is a shell archive.  Save it in a file, remove anything before
+# this line, and then unpack it by entering "sh file".  Note, it may
+# create directories; files and directories will be owned by you and
+# have default permissions.
+#
+# This archive contains:
+#
+#	meson
+#	meson/distinfo
+#	meson/files
+#	meson/files/patch-mesonbuild_compilers-1.py
+#	meson/files/patch-mesonbuild_compilers-2.py
+#	meson/files/patch-mesonbuild_compilers-3.py
+#	meson/files/patch-mesonbuild_compilers-4.py
+#	meson/files/patch-mesonbuild_scripts_scanbuild.py
+#	meson/files/patch-setup.py
+#	meson/Makefile
+#	meson/pkg-descr
+#
+echo c - meson
+mkdir -p meson > /dev/null 2>&1
+echo x - meson/distinfo
+sed 's/^X//' >meson/distinfo << '55b14f14619731c01546b3c938e8e081'
+XTIMESTAMP = 1478286789
+XSHA256 (meson-0.35.1.tar.gz) = b47edb53bd7554cb7890a32399fdf6402e8079379393893ab3dec8fffcbfba2c
+XSIZE (meson-0.35.1.tar.gz) = 510957
+55b14f14619731c01546b3c938e8e081
+echo c - meson/files
+mkdir -p meson/files > /dev/null 2>&1
+echo x - meson/files/patch-mesonbuild_compilers-1.py
+sed 's/^X//' >meson/files/patch-mesonbuild_compilers-1.py << 'a7853248dcf025e0d2916a1f8b0d482d'
+XFrom b8ef693a2af7463be0cfa3cc752decd4c4955587 Mon Sep 17 00:00:00 2001
+XFrom: Nirbheek Chauhan <nirbheek@centricular.com>
+XDate: Sat, 29 Oct 2016 12:38:36 +0530
+XSubject: [PATCH] Clang also supports gnu89/99/11, gnu++03/11/14/1z
+X
+XThe list of supported standards is identical for GCC and Clang.
+X
+XWe don't list duplicate standard names however, such as c++03 and c++09
+X
+Xhttps://github.com/llvm-mirror/clang/blob/master/include/clang/Frontend/LangStandards.def
+X--- mesonbuild/compilers.py.orig	2016-10-17 17:38:14 UTC
+X+++ mesonbuild/compilers.py
+X@@ -1968,7 +1968,8 @@ class GnuCCompiler(GnuCompiler, CCompile
+X 
+X     def get_options(self):
+X         opts = {'c_std' : coredata.UserComboOption('c_std', 'C language standard to use',
+X-                                                   ['none', 'c89', 'c99', 'c11', 'gnu89', 'gnu99', 'gnu11'],
+X+                                                   ['none', 'c89', 'c99', 'c11',
+X+                                                    'gnu89', 'gnu99', 'gnu11'],
+X                                                    'none')}
+X         if self.gcc_type == GCC_MINGW:
+X             opts.update({
+X@@ -2097,7 +2098,8 @@ class ClangCCompiler(ClangCompiler, CCom
+X 
+X     def get_options(self):
+X         return {'c_std' : coredata.UserComboOption('c_std', 'C language standard to use',
+X-                                                   ['none', 'c89', 'c99', 'c11'],
+X+                                                   ['none', 'c89', 'c99', 'c11',
+X+                                                    'gnu89', 'gnu99', 'gnu11',],
+X                                                    'none')}
+X 
+X     def get_option_compile_args(self, options):
+X@@ -2124,8 +2126,9 @@ class ClangCPPCompiler(ClangCompiler,   
+X 
+X     def get_options(self):
+X         return {'cpp_std' : coredata.UserComboOption('cpp_std', 'C++ language standard to use',
+X-                                                   ['none', 'c++03', 'c++11', 'c++14', 'c++1z'],
+X-                                                   'none')}
+X+                                                     ['none', 'c++03', 'c++11', 'c++14', 'c++1z',
+X+                                                      'gnu++03', 'gnu++11', 'gnu++14', 'gnu++1z'],
+X+                                                     'none')}
+X 
+X     def get_option_compile_args(self, options):
+X         args = []
+a7853248dcf025e0d2916a1f8b0d482d
+echo x - meson/files/patch-mesonbuild_compilers-2.py
+sed 's/^X//' >meson/files/patch-mesonbuild_compilers-2.py << '6a7ff6e0236a65507344e2ded33cbae3'
+XFrom ac58c13bbfa6c7b47cc54f30e32bd405c944076d Mon Sep 17 00:00:00 2001
+XFrom: Nirbheek Chauhan <nirbheek@centricular.com>
+XDate: Tue, 25 Oct 2016 02:32:57 +0530
+XSubject: [PATCH] has_function: Only ignore prototype when no includes are
+X specified
+X
+XThe Autoconf-style check we were doing gives false positives when the
+Xlinker uses the prototype defined in the SDK header to decide whether
+Xa function is available or not.
+X
+XFor example, with macOS 10.12, clock_gettime is now implemented
+X(alongwith other functions). These functions are always defined in the
+XXCode 8 SDK as weak imports and you're supposed to do a runtime check to
+Xsee if the symbols are available and use fallback code if they aren't.
+X
+XThe linker will always successfully link if you use one of those symbols
+X(without a runtime fallback) even if you target an older OS X version
+Xwith -mmacosx-version-min. This is the intended behaviour by Apple.
+X
+XBut this makes has_function useless because to test if the symbol is
+Xavailable, we must know at link-time whether it is available.
+X
+XTo force the linker to do the check at link-time you must use
+X'-Wl,-no_weak_imports` *and* use the prototype in time.h which has an
+Xavailability macro which tells the linker whether the symbol is
+Xavailable or not based on the -mmacosx-version-min flag.
+X
+XAn autoconf-style check would override this prototype and use its own
+Xwhich would result in the linker thinking that the function is always
+Xavailable (a false positive). Worse, this would manifest at runtime and
+Xmight not be picked up immediately.
+X
+XWe now use the function prototype in the user-provided includes if the
+X'prefix' kwarg contains a `#include` and use the old Autoconf-style
+Xcheck if not. I've tested that the configure checks done by GStreamer
+Xand GLib are completely unaffected by this; at least on Linux.
+X
+XThe next commit will also add `-Wl,-no_weak_imports` to extra_args by
+Xdefault so that Meson avoids this mess completely. We always want this
+Xbecause the user would not do a has_function check if they have
+Xa runtime fallback for the function in their code.
+X--- mesonbuild/compilers.py.orig	2016-11-09 17:25:49 UTC
+X+++ mesonbuild/compilers.py
+X@@ -891,55 +891,65 @@ int main(int argc, char **argv) {
+X             raise EnvironmentException('Could not determine alignment of %s. Sorry. You might want to file a bug.' % typename)
+X         return align
+X 
+X-    def has_function(self, funcname, prefix, env, extra_args=None, dependencies=None):
+X+    @staticmethod
+X+    def _no_prototype_templ():
+X         """
+X-        First, this function looks for the symbol in the default libraries
+X-        provided by the compiler (stdlib + a few others usually). If that
+X-        fails, it checks if any of the headers specified in the prefix provide
+X-        an implementation of the function, and if that fails, it checks if it's
+X-        implemented as a compiler-builtin.
+X+        Try to find the function without a prototype from a header by defining
+X+        our own dummy prototype and trying to link with the C library (and
+X+        whatever else the compiler links in by default). This is very similar
+X+        to the check performed by Autoconf for AC_CHECK_FUNCS.
+X         """
+X-        if extra_args is None:
+X-            extra_args = []
+X-        # Define the symbol to something else in case it is defined by the
+X-        # includes or defines listed by the user `{0}` or by the compiler.
+X-        # Then, undef the symbol to get rid of it completely.
+X-        templ = '''
+X+        # Define the symbol to something else since it is defined by the
+X+        # includes or defines listed by the user (prefix -> {0}) or by the
+X+        # compiler. Then, undef the symbol to get rid of it completely.
+X+        head = '''
+X         #define {1} meson_disable_define_of_{1}
+X         #include <limits.h>
+X         {0}
+X         #undef {1}
+X         '''
+X-
+X         # Override any GCC internal prototype and declare our own definition for
+X         # the symbol. Use char because that's unlikely to be an actual return
+X         # value for a function which ensures that we override the definition.
+X-        templ += '''
+X+        head += '''
+X         #ifdef __cplusplus
+X         extern "C"
+X         #endif
+X         char {1} ();
+X         '''
+X-
+X-        # glibc defines functions that are not available on Linux as stubs that
+X-        # fail with ENOSYS (such as e.g. lchmod). In this case we want to fail
+X-        # instead of detecting the stub as a valid symbol.
+X-        # We always include limits.h above to ensure that these are defined for
+X-        # stub functions.
+X-        stubs_fail = '''
+X-        #if defined __stub_{1} || defined __stub___{1}
+X-        fail fail fail this function is not going to work
+X-        #endif
+X-        '''
+X-        templ += stubs_fail
+X-
+X-        # And finally the actual function call
+X-        templ += '''
+X-        int
+X-        main ()
+X+        # The actual function call
+X+        main = '''
+X+        int main ()
+X         {{
+X           return {1} ();
+X         }}'''
+X+        return head, main
+X+
+X+    @staticmethod
+X+    def _have_prototype_templ():
+X+        """
+X+        Returns a head-er and main() call that uses the headers listed by the
+X+        user for the function prototype while checking if a function exists.
+X+        """
+X+        # Add the 'prefix', aka defines, includes, etc that the user provides
+X+        head = '#include <limits.h>\n{0}\n'
+X+        # We don't know what the function takes or returns, so just add
+X+        # a useless reference to it
+X+        main = '\nint main() {{ {1}; }}'
+X+        return head, main
+X+
+X+    def has_function(self, funcname, prefix, env, extra_args=None, dependencies=None):
+X+        """
+X+        First, this function looks for the symbol in the default libraries
+X+        provided by the compiler (stdlib + a few others usually). If that
+X+        fails, it checks if any of the headers specified in the prefix provide
+X+        an implementation of the function, and if that fails, it checks if it's
+X+        implemented as a compiler-builtin.
+X+        """
+X+        if extra_args is None:
+X+            extra_args = []
+X+
+X+        # Short-circuit if the check is already provided by the cross-info file
+X         varname = 'has function ' + funcname
+X         varname = varname.replace(' ', '_')
+X         if self.is_cross:
+X@@ -948,16 +958,35 @@ int main(int argc, char **argv) {
+X                 if isinstance(val, bool):
+X                     return val
+X                 raise EnvironmentException('Cross variable {0} is not a boolean.'.format(varname))
+X-        if self.links(templ.format(prefix, funcname), env, extra_args, dependencies):
+X-            return True
+X+
+X+        # glibc defines functions that are not available on Linux as stubs that
+X+        # fail with ENOSYS (such as e.g. lchmod). In this case we want to fail
+X+        # instead of detecting the stub as a valid symbol.
+X+        # We already included limits.h earlier to ensure that these are defined
+X+        # for stub functions.
+X+        stubs_fail = '''
+X+        #if defined __stub_{1} || defined __stub___{1}
+X+        fail fail fail this function is not going to work
+X+        #endif
+X+        '''
+X+
+X+        # If we have any includes in the prefix supplied by the user, assume
+X+        # that the user wants us to use the symbol prototype defined in those
+X+        # includes. If not, then try to do the Autoconf-style check with
+X+        # a dummy prototype definition of our own.
+X+        # This is needed when the linker determines symbol availability from an
+X+        # SDK based on the prototype in the header provided by the SDK.
+X+        # Ignoring this prototype would result in the symbol always being
+X+        # marked as available.
+X+        if '#include' in prefix:
+X+            head, main = self._have_prototype_templ()
+X+        else:
+X+            head, main = self._no_prototype_templ()
+X+        templ = head + stubs_fail + main
+X+
+X         # Add -O0 to ensure that the symbol isn't optimized away by the compiler
+X         args = extra_args + self.get_no_optimization_args()
+X-        # Sometimes the implementation is provided by the header, or the header
+X-        # redefines the symbol to be something else. In that case, we want to
+X-        # still detect the function. We still want to fail if __stub_foo or
+X-        # _stub_foo are defined, of course.
+X-        header_templ = '#include <limits.h>\n{0}\n' + stubs_fail + '\nint main() {{ {1}; }}'
+X-        if self.links(header_templ.format(prefix, funcname), env, args, dependencies):
+X+        if self.links(templ.format(prefix, funcname), env, extra_args, dependencies):
+X             return True
+X         # Some functions like alloca() are defined as compiler built-ins which
+X         # are inlined by the compiler, so test for that instead. Built-ins are
+6a7ff6e0236a65507344e2ded33cbae3
+echo x - meson/files/patch-mesonbuild_compilers-3.py
+sed 's/^X//' >meson/files/patch-mesonbuild_compilers-3.py << '93c1b61df3739a2a00df3bda25ff07e9'
+XFrom 4be8e71fb380a0541b69992539a0695ea29b3205 Mon Sep 17 00:00:00 2001
+XFrom: Nirbheek Chauhan <nirbheek@centricular.com>
+XDate: Tue, 25 Oct 2016 08:01:21 +0530
+XSubject: [PATCH] has_function: Try to use the function being checked
+X
+XSimply placing a reference to it isn't enough for the linker to try and
+Xthink it's being used and do a symbol availability check with
+X-Wl,-no_weak_imports on OS X ld.
+X--- mesonbuild/compilers.py.orig	2016-11-09 17:43:55 UTC
+X+++ mesonbuild/compilers.py
+X@@ -933,9 +933,9 @@ int main(int argc, char **argv) {
+X         """
+X         # Add the 'prefix', aka defines, includes, etc that the user provides
+X         head = '#include <limits.h>\n{0}\n'
+X-        # We don't know what the function takes or returns, so just add
+X-        # a useless reference to it
+X-        main = '\nint main() {{ {1}; }}'
+X+        # We don't know what the function takes or returns, so try to use it as
+X+        # a function pointer
+X+        main = '\nint main() {{ int a = (int) &{1}; }}'
+X         return head, main
+X 
+X     def has_function(self, funcname, prefix, env, extra_args=None, dependencies=None):
+93c1b61df3739a2a00df3bda25ff07e9
+echo x - meson/files/patch-mesonbuild_compilers-4.py
+sed 's/^X//' >meson/files/patch-mesonbuild_compilers-4.py << 'e177247801350b3e2629a841b2a17eb8'
+XFrom f144e50f5ca65ba67c23ff262a79c35a2c444006 Mon Sep 17 00:00:00 2001
+XFrom: Nirbheek Chauhan <nirbheek@centricular.com>
+XDate: Tue, 8 Nov 2016 16:22:40 +0530
+XSubject: [PATCH] has_function: Cast to void* instead of int
+X
+XClang++ doesn't allow that, but void* will always be allowed because
+Xlots of projects depend on that.
+X
+Xerror: cast from pointer to smaller type 'int' loses information
+X--- mesonbuild/compilers.py.orig	2016-11-09 17:42:03 UTC
+X+++ mesonbuild/compilers.py
+X@@ -935,7 +935,7 @@ int main(int argc, char **argv) {
+X         head = '#include <limits.h>\n{0}\n'
+X         # We don't know what the function takes or returns, so try to use it as
+X         # a function pointer
+X-        main = '\nint main() {{ int a = (int) &{1}; }}'
+X+        main = '\nint main() {{ void *a = (void*) &{1}; }}'
+X         return head, main
+X 
+X     def has_function(self, funcname, prefix, env, extra_args=None, dependencies=None):
+e177247801350b3e2629a841b2a17eb8
+echo x - meson/files/patch-mesonbuild_scripts_scanbuild.py
+sed 's/^X//' >meson/files/patch-mesonbuild_scripts_scanbuild.py << '941b67319e8b375313d9adb8fb13e395'
+XFrom f7431fd5dba1f59ce70b07d7074999d1e7442887 Mon Sep 17 00:00:00 2001
+XFrom: Jussi Pakkanen <jpakkane@gmail.com>
+XDate: Wed, 9 Nov 2016 15:46:40 +0200
+XSubject: [PATCH] Can specify scan-build executable with an environment
+X variable. Closes #1015.
+X
+X--- mesonbuild/scripts/scanbuild.py.orig	2016-10-17 17:38:14 UTC
+X+++ mesonbuild/scripts/scanbuild.py
+X@@ -17,10 +17,10 @@ import subprocess
+X import shutil
+X import tempfile
+X 
+X-def scanbuild(srcdir, blddir, privdir, logdir, args):
+X+def scanbuild(exename, srcdir, blddir, privdir, logdir, args):
+X     with tempfile.TemporaryDirectory(dir=privdir) as scandir:
+X-        meson_cmd = ['scan-build'] + args
+X-        build_cmd = ['scan-build', '-o', logdir, 'ninja']
+X+        meson_cmd = [exename] + args
+X+        build_cmd = [exename, '-o', logdir, 'ninja']
+X         rc = subprocess.call(meson_cmd + [srcdir, scandir])
+X         if rc != 0:
+X             return rc
+X@@ -33,7 +33,8 @@ def run(args):
+X     privdir = os.path.join(blddir, 'meson-private')
+X     logdir = os.path.join(blddir, 'meson-logs/scanbuild')
+X     shutil.rmtree(logdir, ignore_errors=True)
+X-    if not shutil.which('scan-build'):
+X-        print('Scan-build not installed')
+X+    exename = os.environ.get('SCANBUILD', 'scan-build')
+X+    if not shutil.which(exename):
+X+        print('Scan-build not installed.')
+X         return 1
+X-    return scanbuild(srcdir, blddir, privdir, logdir, meson_cmd)
+X+    return scanbuild(exename, srcdir, blddir, privdir, logdir, meson_cmd)
+941b67319e8b375313d9adb8fb13e395
+echo x - meson/files/patch-setup.py
+sed 's/^X//' >meson/files/patch-setup.py << '995c787a90806e9b0327c3f5f8e93370'
+XFrom 999669e8501501d4618588008e4bf4353a1ace2a Mon Sep 17 00:00:00 2001
+XFrom: Patrick Griffis <tingping@tingping.se>
+XDate: Fri, 30 Sep 2016 23:28:40 -0400
+XSubject: [PATCH] setup.py: On Unix install scripts without .py suffix
+X
+X--- setup.py.orig	2016-10-17 17:38:14 UTC
+X+++ setup.py
+X@@ -14,7 +14,9 @@
+X # See the License for the specific language governing permissions and
+X # limitations under the License.
+X 
+X+import os
+X import sys
+X+from os import path
+X 
+X if sys.version_info[0] < 3:
+X     print('Tried to install with Python 2, Meson only supports Python 3.')
+X@@ -25,8 +27,32 @@ if sys.version_info[0] < 3:
+X # plain distutils when setuptools is not available.
+X try:
+X     from setuptools import setup
+X+    from setuptools.command.install_scripts import install_scripts as orig
+X except ImportError:
+X     from distutils.core import setup
+X+    from distutils.command.install_scripts import install_scripts as orig
+X+
+X+from distutils.file_util import copy_file
+X+from distutils.dir_util import mkpath
+X+from stat import ST_MODE
+X+
+X+class install_scripts(orig):
+X+    def run(self):
+X+        if sys.platform == 'win32':
+X+            super().run()
+X+            return
+X+
+X+        self.outfiles = []
+X+        if not self.dry_run:
+X+            mkpath(self.install_dir)
+X+
+X+        # We want the files to be installed without a suffix on Unix
+X+        for infile in self.get_inputs():
+X+            in_stripped = infile[:-3] if infile.endswith('.py') else infile
+X+            outfile = path.join(self.install_dir, in_stripped)
+X+            # NOTE: Mode is preserved by default
+X+            copy_file(infile, outfile, dry_run=self.dry_run)
+X+            self.outfiles.append(outfile)
+X 
+X from mesonbuild.coredata import version
+X 
+X@@ -46,7 +72,8 @@ setup(name='meson',
+X                'mesonconf.py',
+X                'mesonintrospect.py',
+X                'wraptool.py'],
+X-      data_files=[('share/man/man1', ['man/meson.1',
+X+      cmdclass={'install_scripts': install_scripts},
+X+      data_files=[('man/man1'      , ['man/meson.1',
+X                                       'man/mesonconf.1',
+X                                       'man/mesonintrospect.1',
+X                                       'man/wraptool.1'])],
+995c787a90806e9b0327c3f5f8e93370
+echo x - meson/Makefile
+sed 's/^X//' >meson/Makefile << '4f852787580f909b2386cc96a36641c9'
+X# Created by: Ting-Wei Lan <lantw44@gmail.com>
+X# $FreeBSD$
+X
+XPORTNAME=	meson
+XPORTVERSION=	0.35.1
+XCATEGORIES=	devel python
+XMASTER_SITES=	https://github.com/mesonbuild/${PORTNAME}/releases/download/${PORTVERSION}/
+X
+XMAINTAINER=	gnome@FreeBSD.org
+XCOMMENT=	High performance build system
+X
+XLICENSE=	APACHE20
+XLICENSE_FILE=	${WRKSRC}/COPYING
+X
+XRUN_DEPENDS=    ninja:devel/ninja
+X
+XUSES=		python:3
+XUSE_PYTHON=	autoplist distutils
+X
+X.include <bsd.port.mk>
+4f852787580f909b2386cc96a36641c9
+echo x - meson/pkg-descr
+sed 's/^X//' >meson/pkg-descr << 'cb0a3183c2209837e70d89bf4f8cf93a'
+XMeson is a cross-platform build system designed to be both as fast and as
+Xuser friendly as possible. It supports many languages and compilers, including
+XGCC, Clang and Visual Studio. Its build definitions are written in a simple
+Xnon-turing complete DSL. The main design point of Meson is that every moment
+Xa developer spends writing or debugging build definitions is a second wasted.
+XSo is every second spent waiting for the build system to actually start
+Xcompiling code.
+X
+XWWW: http://mesonbuild.com
+cb0a3183c2209837e70d89bf4f8cf93a
+exit
+

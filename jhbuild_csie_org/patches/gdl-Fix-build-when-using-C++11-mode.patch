@@ -1,0 +1,25 @@
+From c208d32b5cb781187ffe6aff33c01e0fa2e8410e Mon Sep 17 00:00:00 2001
+From: Ting-Wei Lan <lantw44@gmail.com>
+Date: Thu, 13 Feb 2014 23:31:22 +0800
+Subject: [PATCH] Fix build when using C++11 mode
+
+---
+ gdl/gdl-dock-object.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdl/gdl-dock-object.h b/gdl/gdl-dock-object.h
+index 8ed0bba..8bc081e 100644
+--- a/gdl/gdl-dock-object.h
++++ b/gdl/gdl-dock-object.h
+@@ -381,7 +381,7 @@ GType                 gdl_dock_object_set_type_for_nick (const gchar *nick,
+     G_STMT_START {                            \
+     g_log (G_LOG_DOMAIN,                      \
+ 	   G_LOG_LEVEL_DEBUG,                 \
+-           "%s:%d (%s) %s [%p %d%s:%d]: "format, \
++           "%s:%d (%s) %s [%p %d%s:%d]: " format, \
+ 	   __FILE__,                          \
+ 	   __LINE__,                          \
+ 	   __PRETTY_FUNCTION__,               \
+-- 
+1.8.5.4
+

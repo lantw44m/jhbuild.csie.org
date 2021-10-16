@@ -1,0 +1,68 @@
+diff --git a/autogen.sh b/autogen.sh
+index f9c9e6b..89ba6f5 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # Run this to generate all the initial makefiles, etc.
+ 
+ srcdir=`dirname $0`
+diff --git a/configure.ac b/configure.ac
+index ac69712..c1ddaad 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -105,8 +105,6 @@ SHARED_PCS="gio-unix-2.0 >= $GIO_MIN_VERSION
+             libcanberra libcanberra-gtk3
+             telepathy-glib >= $TELEPATHY_GLIB_MIN_VERSION
+             polkit-agent-1 >= $POLKIT_MIN_VERSION
+-            libnm-glib libnm-util >= $NETWORKMANAGER_MIN_VERSION
+-            libnm-gtk >= $NETWORKMANAGER_MIN_VERSION
+             libsecret-unstable gcr-base-3 >= $GCR_MIN_VERSION"
+ if test x$have_systemd = xyes; then
+   SHARED_PCS="${SHARED_PCS} libsystemd-journal"
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 59c9d8f..d410420 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -98,7 +98,6 @@ shell_public_headers_h =		\
+ 	shell-invert-lightness-effect.h	\
+ 	shell-keybinding-modes.h	\
+ 	shell-mount-operation.h		\
+-	shell-network-agent.h		\
+ 	shell-perf-log.h		\
+ 	shell-screenshot.h		\
+ 	shell-slicer.h			\
+@@ -136,7 +135,6 @@ libgnome_shell_base_la_SOURCES = 	\
+ 	shell-menu-tracker.c		\
+ 	shell-menu-tracker.h		\
+ 	shell-mount-operation.c		\
+-	shell-network-agent.c		\
+ 	shell-perf-log.c		\
+ 	shell-polkit-authentication-agent.h	\
+ 	shell-polkit-authentication-agent.c	\
+@@ -343,7 +341,7 @@ INTROSPECTION_GIRS += ShellMenu-0.1.gir
+ CLEANFILES += ShellMenu-0.1.gir
+ 
+ Shell-0.1.gir: gnome-shell St-1.0.gir ShellMenu-0.1.gir
+-Shell_0_1_gir_INCLUDES = Clutter-1.0 ClutterX11-1.0 Meta-3.0 TelepathyGLib-0.12 Soup-2.4 GMenu-3.0 NetworkManager-1.0 NMClient-1.0
++Shell_0_1_gir_INCLUDES = Clutter-1.0 ClutterX11-1.0 Meta-3.0 TelepathyGLib-0.12 Soup-2.4 GMenu-3.0
+ Shell_0_1_gir_CFLAGS = $(libgnome_shell_la_CPPFLAGS) -I $(srcdir)
+ # Hack! we use PROGRAM instead of LIBS so that the soname is not included
+ # in the typelib. This way the symbols will be resolved with the libgnome-shell
+diff --git a/src/gnome-shell-extension-prefs.c b/src/gnome-shell-extension-prefs.c
+index fefa3be..5854c90 100644
+--- a/src/gnome-shell-extension-prefs.c
++++ b/src/gnome-shell-extension-prefs.c
+@@ -2,9 +2,10 @@
+ 
+ #include <girepository.h>
+ #include <gjs/gjs.h>
++#include <libintl.h>
+ 
+ int
+-main (int argc, char *argv)
++main (int argc, char *argv[])
+ {
+   const char *search_path[] = { "resource:///org/gnome/shell", NULL };
+   GError *error = NULL;

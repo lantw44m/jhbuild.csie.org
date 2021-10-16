@@ -1,0 +1,11 @@
+--- libtool.m4.orig	2013-09-22 10:29:14.000000000 +0800
++++ libtool.m4	2013-09-22 11:48:33.000000000 +0800
+@@ -2482,7 +2482,7 @@
+   version_type=freebsd-$objformat
+   case $version_type in
+     freebsd-elf*)
+-      library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext} $libname${shared_ext}'
++      library_names_spec='${libname}${release}${shared_ext}.`expr $current - $age` ${libname}${release}${shared_ext} $libname${shared_ext}'
+       need_version=no
+       need_lib_prefix=no
+       ;;

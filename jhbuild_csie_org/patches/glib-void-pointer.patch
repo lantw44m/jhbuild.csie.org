@@ -1,0 +1,31 @@
+diff --git a/glib/gtestutils.c b/glib/gtestutils.c
+index 09f3adc..4176028 100644
+--- a/glib/gtestutils.c
++++ b/glib/gtestutils.c
+@@ -1538,9 +1538,9 @@ g_test_create_case (const char       *test_name,
+   tc->name = g_strdup (test_name);
+   tc->test_data = (gpointer) test_data;
+   tc->fixture_size = data_size;
+-  tc->fixture_setup = (void*) data_setup;
+-  tc->fixture_test = (void*) data_test;
+-  tc->fixture_teardown = (void*) data_teardown;
++  tc->fixture_setup = data_setup;
++  tc->fixture_test = data_test;
++  tc->fixture_teardown = data_teardown;
+ 
+   return tc;
+ }
+diff --git a/glib/tests/gvariant.c b/glib/tests/gvariant.c
+index 122400e..1cb178a 100644
+--- a/glib/tests/gvariant.c
++++ b/glib/tests/gvariant.c
+@@ -4549,8 +4549,7 @@ main (int argc, char **argv)
+       char *testname;
+ 
+       testname = g_strdup_printf ("/gvariant/serialiser/fuzz/%d%%", i);
+-      g_test_add_data_func (testname, GINT_TO_POINTER (i),
+-                            (gpointer) test_fuzzes);
++      g_test_add_data_func (testname, GINT_TO_POINTER (i), test_fuzzes);
+       g_free (testname);
+     }
+ 

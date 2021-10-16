@@ -1,0 +1,43 @@
+Index: Makefile
+===================================================================
+--- Makefile	(revision 383191)
++++ Makefile	(working copy)
+@@ -3,10 +3,9 @@
+ #   $MCom: ports/trunk/textproc/intltool/Makefile 17268 2013-04-01 05:13:11Z marcus $
+ 
+ PORTNAME=	intltool
+-PORTVERSION=	0.50.2
+-PORTREVISION=	1
++PORTVERSION=	0.51.0
+ CATEGORIES=	textproc gnome
+-MASTER_SITES=	http://launchpadlibrarian.net/94524169/
++MASTER_SITES=	https://launchpad.net/intltool/trunk/$(PORTVERSION)/+download/
+ DIST_SUBDIR=	gnome
+ 
+ MAINTAINER=	gnome@FreeBSD.org
+Index: distinfo
+===================================================================
+--- distinfo	(revision 383191)
++++ distinfo	(working copy)
+@@ -1,2 +1,2 @@
+-SHA256 (gnome/intltool-0.50.2.tar.gz) = 67f25c5c6fb71d095793a7f895b245e65e829e8bde68c6c8b4c912144ff34406
+-SIZE (gnome/intltool-0.50.2.tar.gz) = 189483
++SHA256 (gnome/intltool-0.51.0.tar.gz) = 67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd
++SIZE (gnome/intltool-0.51.0.tar.gz) = 162286
+Index: files/patch-intltool.m4
+===================================================================
+--- files/patch-intltool.m4	(revision 383191)
++++ files/patch-intltool.m4	(working copy)
+@@ -1,12 +0,0 @@
+---- intltool.m4.orig	2012-02-26 18:31:06 UTC
+-+++ intltool.m4
+-@@ -164,6 +164,9 @@ if test -z "$DATADIRNAME"; then
+-                        return _nl_msg_cat_cntr]])],
+-     [DATADIRNAME=share],
+-     [case $host in
+-+    *-*-dragonfly*|*-*-freebsd*)
+-+    [DATADIRNAME=share]
+-+    ;;
+-     *-*-solaris*)
+-     dnl On Solaris, if bind_textdomain_codeset is in libc,
+-     dnl GNU format message catalog is always supported,

@@ -1,0 +1,77 @@
+diff -ur webkitgtk-2.3.5/Source/WTF/wtf/Platform.h webkitgtk-2.3.5+changes/Source/WTF/wtf/Platform.h
+--- webkitgtk-2.3.5/Source/WTF/wtf/Platform.h	2014-02-04 11:38:03.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/WTF/wtf/Platform.h	2014-02-11 09:07:29.000000000 -0500
+@@ -715,8 +715,8 @@
+ #endif
+ 
+ #if !defined(ENABLE_DFG_JIT) && ENABLE(JIT) && !COMPILER(MSVC)
+-/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac and GNU/Linux. */
+-#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX))
++/* Enable the DFG JIT on X86 and X86_64.  Only tested on Mac, GNU/Linux and FreeBSD. */
++#if (CPU(X86) || CPU(X86_64)) && (OS(DARWIN) || OS(LINUX) || OS(FREEBSD))
+ #define ENABLE_DFG_JIT 1
+ #endif
+ /* Enable the DFG JIT on ARMv7.  Only tested on iOS and Qt/GTK+ Linux. */
+diff -ur webkitgtk-2.3.5/Source/WebCore/dom/make_names.pl webkitgtk-2.3.5+changes/Source/WebCore/dom/make_names.pl
+--- webkitgtk-2.3.5/Source/WebCore/dom/make_names.pl	2014-01-21 09:06:51.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/WebCore/dom/make_names.pl	2014-02-11 09:12:53.000000000 -0500
+@@ -70,7 +70,7 @@
+ } elsif ($Config::Config{"osname"} eq "darwin" && $ENV{SDKROOT}) {
+     chomp($gccLocation = `xcrun -find cc -sdk '$ENV{SDKROOT}'`);
+ } else {
+-    $gccLocation = "/usr/bin/gcc";
++    $gccLocation = "/usr/bin/cc";
+ }
+ my $preprocessor = $gccLocation . " -E -x c++";
+ 
+diff -ur webkitgtk-2.3.5/Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp webkitgtk-2.3.5+changes/Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp
+--- webkitgtk-2.3.5/Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp	2014-01-21 09:06:52.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/WebKit2/NetworkProcess/unix/NetworkProcessMainUnix.cpp	2014-02-11 09:07:29.000000000 -0500
+@@ -33,7 +33,6 @@
+ #include "WebKit2Initialize.h"
+ #include <WebCore/SoupNetworkSession.h>
+ #include <WebKit2/NetworkProcess.h>
+-#include <error.h>
+ #include <runtime/InitializeThreading.h>
+ #include <stdlib.h>
+ #include <wtf/MainThread.h>
+diff -ur webkitgtk-2.3.5/Source/WebKit2/Platform/unix/SharedMemoryUnix.cpp webkitgtk-2.3.5+changes/Source/WebKit2/Platform/unix/SharedMemoryUnix.cpp
+--- webkitgtk-2.3.5/Source/WebKit2/Platform/unix/SharedMemoryUnix.cpp	2014-02-04 11:38:04.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/WebKit2/Platform/unix/SharedMemoryUnix.cpp	2014-02-11 09:08:32.000000000 -0500
+@@ -107,7 +107,7 @@
+         tempName = name.utf8();
+ 
+         do {
+-            fileDescriptor = shm_open(tempName.data(), O_CREAT | O_CLOEXEC | O_RDWR, S_IRUSR | S_IWUSR);
++            fileDescriptor = shm_open(tempName.data(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+         } while (fileDescriptor == -1 && errno == EINTR);
+     }
+     if (fileDescriptor == -1) {
+diff -ur webkitgtk-2.3.5/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp webkitgtk-2.3.5+changes/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp
+--- webkitgtk-2.3.5/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	2014-01-21 09:06:52.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	2014-02-11 09:07:29.000000000 -0500
+@@ -44,6 +44,8 @@
+ #include <Ecore_X.h>
+ #endif
+ 
++#include <libgen.h>
++
+ using namespace WebCore;
+ 
+ namespace WebKit {
+diff -ur webkitgtk-2.3.5/Source/autotools/SetupLibtool.m4 webkitgtk-2.3.5+changes/Source/autotools/SetupLibtool.m4
+--- webkitgtk-2.3.5/Source/autotools/SetupLibtool.m4	2014-01-21 09:06:52.000000000 -0500
++++ webkitgtk-2.3.5+changes/Source/autotools/SetupLibtool.m4	2014-02-11 09:07:29.000000000 -0500
+@@ -6,7 +6,11 @@
+ AC_SUBST([LIBWEBKIT2GTK_VERSION])
+ 
+ if test -z "$AR_FLAGS"; then
+-    AR_FLAGS="cruT"
++    if "${AR:-ar}" -V | grep -q 'GNU ar'; then
++        AR_FLAGS="cruT"
++    else
++        AR_FLAGS="cru"
++    fi
+ fi
+ AC_SUBST([AR_FLAGS])
+ 

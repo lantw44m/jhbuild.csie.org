@@ -1,0 +1,12 @@
+diff --git a/mash/Makefile.am b/mash/Makefile.am
+index 25fde1f..275f252 100644
+--- a/mash/Makefile.am
++++ b/mash/Makefile.am
+@@ -88,6 +88,7 @@ Mash-@MASH_API_VERSION@.gir: $(INTROSPECTION_SCANNER) libmash-@MASH_API_VERSION@
+ 		--include=Clutter-1.0 \
+ 		--output $@ \
+ 		--library=libmash-@MASH_API_VERSION@.la \
++		--libtool=$(LIBTOOL) \
+ 		$(libmash_@MASH_API_VERSION@_la_SOURCES)
+ 
+ BUILT_GIRSOURCES += Mash-@MASH_API_VERSION@.gir
